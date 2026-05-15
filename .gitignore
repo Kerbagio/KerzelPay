@@ -1,0 +1,101 @@
+## ========== Build results ==========
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## ========== Visual Studio ==========
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+*.svclog
+
+## ========== .NET ==========
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.pidb
+*.svclog
+*.scc
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.log
+*.tlog
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+## ========== NuGet ==========
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+## ========== Secrets / Local config ==========
+# We DO commit appsettings.json (no secrets there yet)
+# When we add Stripe keys in Session 5, we'll use User Secrets or appsettings.Development.json
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+
+## ========== OS junk ==========
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+## ========== JetBrains Rider (just in case) ==========
+.idea/
+*.sln.iml
+
+## ========== Node (if we ever add front-end build tools) ==========
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
