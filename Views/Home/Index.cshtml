@@ -1,8 +1,20 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center mt-5">
+    <h1 class="display-4">💸 Welcome to Kerzel Pay</h1>
+    <p class="lead">Fast, affordable, and reliable money transfers — anywhere, anytime.</p>
+
+    @if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        <div class="mt-4">
+            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary btn-lg me-2">Get Started</a>
+            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary btn-lg">Login</a>
+        </div>
+    }
+    else
+    {
+        <p class="mt-3">You're signed in as <strong>@User.Identity.Name</strong>.</p>
+    }
 </div>
