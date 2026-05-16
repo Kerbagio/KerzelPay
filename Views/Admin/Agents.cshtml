@@ -68,24 +68,42 @@
                                 }
                             </td>
                             <td class="text-end">
-                                @if (a.Status == KerzelPay.Models.AgentStatus.Pending)
+                                @switch (a.Status)
                                 {
-                                    <form asp-action="ApproveAgent" asp-route-id="@a.Id" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <button class="btn btn-sm btn-success">✓ Approve</button>
-                                    </form>
-                                    <form asp-action="RejectAgent" asp-route-id="@a.Id" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <button class="btn btn-sm btn-outline-danger">✗ Reject</button>
-                                    </form>
-                                }
-                                else if (a.Status == KerzelPay.Models.AgentStatus.Approved)
-                                {
-                                    <form asp-action="SuspendAgent" asp-route-id="@a.Id" method="post" class="d-inline"
-                                          onsubmit="return confirm('Suspend this agent?')">
-                                        @Html.AntiForgeryToken()
-                                        <button class="btn btn-sm btn-outline-warning">⏸ Suspend</button>
-                                    </form>
+                                    case KerzelPay.Models.AgentStatus.Pending:
+                                        <form asp-action="ApproveAgent" asp-route-id="@a.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-success">✓ Approve</button>
+                                        </form>
+                                        <form asp-action="RejectAgent" asp-route-id="@a.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-danger">✗ Reject</button>
+                                        </form>
+                                        break;
+
+                                    case KerzelPay.Models.AgentStatus.Approved:
+                                        <form asp-action="SuspendAgent" asp-route-id="@a.Id" method="post" class="d-inline"
+                                              onsubmit="return confirm('Suspend this agent?')">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-warning">⏸ Suspend</button>
+                                        </form>
+                                        break;
+
+                                    case KerzelPay.Models.AgentStatus.Suspended:
+                                        <form asp-action="UnsuspendAgent" asp-route-id="@a.Id" method="post" class="d-inline"
+                                              onsubmit="return confirm('Reactivate this agent?')">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-success">▶ Reactivate</button>
+                                        </form>
+                                        break;
+
+                                    case KerzelPay.Models.AgentStatus.Rejected:
+                                        <form asp-action="ApproveAgent" asp-route-id="@a.Id" method="post" class="d-inline"
+                                              onsubmit="return confirm('Approve this previously rejected agent?')">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-success">↺ Reconsider</button>
+                                        </form>
+                                        break;
                                 }
                             </td>
                         </tr>

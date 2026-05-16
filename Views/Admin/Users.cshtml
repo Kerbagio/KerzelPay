@@ -32,24 +32,89 @@
     <div class="card shadow-sm">
         <table class="table mb-0">
             <thead class="table-light">
-                <tr><th>Name</th><th>Email</th><th>Roles</th><th>Created</th></tr>
+                <tr><th>Name</th><th>Email</th><th>Roles</th><th>Created</th><th class="text-end">Role Actions</th></tr>
             </thead>
             <tbody>
                 @foreach (var u in Model)
                 {
+                    var userRoleList = roles != null && roles.TryGetValue(u.Id, out var r) ? r : new List<string>();
+
                     <tr>
-                        <td>@u.FirstName @u.LastName</td>
-                        <td>@u.Email</td>
                         <td>
-                            @if (roles != null && roles.TryGetValue(u.Id, out var userRoles))
+                            @u.FirstName @u.LastName
+                        </td>
+                        <td>
+                            <small>@u.Email</small>
+                        </td>
+                        <td>
+                            @foreach (var role in userRoleList)
                             {
-                                @foreach (var r in userRoles)
-                                {
-                                    <span class="badge bg-secondary me-1">@r</span>
-                                }
+                                <span class="badge bg-secondary me-1">@role</span>
                             }
                         </td>
-                        <td><small>@u.CreatedAt.ToString("dd MMM yyyy")</small></td>
+                        <td>
+                            <small class="text-muted">@u.CreatedAt.ToString("dd MMM yyyy")</small>
+                        </td>
+                        <td class="text-end">
+                            @if (u.Email?.ToLower() != ViewBag.SuperAdminEmail?.ToString().ToLower())
+                            {
+                                <!-- Add role dropdown -->
+                                <div class="dropdown d-inline">
+                                    <button class="btn btn-sm btn-outline-success dropdown-toggle"
+                                            data-bs-toggle="dropdown">
+                                        + Role
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        @foreach (var role in new[] { "Admin", "Agent", "User" })
+                                        {
+                                            @if (!userRoleList.Contains(role))
+                                            {
+                                                <li>
+                                                    <form asp-action="AddRole" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="userId" value="@u.Id" />
+                                                        <input type="hidden" name="role" value="@role" />
+                                                        <button type="submit" class="dropdown-item">
+                                                            Add @role
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            }
+                                        }
+                                    </ul>
+                                </div>
+
+                                @if (userRoleList.Any())
+                                {
+                                    <div class="dropdown d-inline">
+                                        <button class="btn btn-sm btn-outline-danger dropdown-toggle"
+                                                data-bs-toggle="dropdown">
+                                            − Role
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            @foreach (var role in userRoleList)
+                                            {
+                                                <li>
+                                                    <form asp-action="RemoveRole" method="post"
+                                                          onsubmit="return confirm('Remove @role role from @u.Email?')">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="userId" value="@u.Id" />
+                                                        <input type="hidden" name="role" value="@role" />
+                                                        <button type="submit" class="dropdown-item text-danger">
+                                                            Remove @role
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge bg-dark">🔒 Super Admin</span>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>

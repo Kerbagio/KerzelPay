@@ -17,15 +17,18 @@ namespace KerzelPay.Controllers
         private readonly ApplicationDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RateRefreshService _rateRefreshService;
+        private readonly string _superAdminEmail;
 
         public AdminController(
-            ApplicationDbContext db,
-            UserManager<ApplicationUser> userManager,
-            RateRefreshService rateRefreshService)
+        ApplicationDbContext db,
+        UserManager<ApplicationUser> userManager,
+        RateRefreshService rateRefreshService,
+        IConfiguration configuration)
         {
             _db = db;
             _userManager = userManager;
             _rateRefreshService = rateRefreshService;
+            _superAdminEmail = configuration["SuperAdmin:Email"] ?? "admin@kerzelpay.com";
         }
 
         // GET: /Admin/Dashboard
@@ -133,6 +136,44 @@ namespace KerzelPay.Controllers
 
             await _db.SaveChangesAsync();
             TempData["Success"] = $"{agent.StoreName} suspended.";
+            return RedirectToAction(nameof(Agents));
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnsuspendAgent(int id)
+        {
+            var agent = await _db.Agents
+                .Include(a => a.User)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (agent == null) return NotFound();
+
+            if (agent.Status != AgentStatus.Suspended)
+            {
+                TempData["Error"] = "Only suspended agents can be reactivated.";
+                return RedirectToAction(nameof(Agents));
+            }
+
+            // Reactivate the agent
+            agent.Status = AgentStatus.Approved;
+
+            // Restore the Agent role
+            if (agent.User != null && !await _userManager.IsInRoleAsync(agent.User, Roles.Agent))
+            {
+                await _userManager.AddToRoleAsync(agent.User, Roles.Agent);
+            }
+
+            // Notify the agent
+            _db.Notifications.Add(new Notification
+            {
+                UserId = agent.UserId,
+                Title = "Agent account reactivated ✅",
+                Message = "Your suspension has been lifted. You can access the Agent Dashboard again."
+            });
+
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = $"{agent.StoreName} reactivated.";
             return RedirectToAction(nameof(Agents));
         }
 
@@ -251,6 +292,7 @@ namespace KerzelPay.Controllers
             ViewBag.UserRoles = userRoles;
             ViewBag.Query = q;
             ViewBag.RoleFilter = role;
+            ViewBag.SuperAdminEmail = _superAdminEmail;
             return View(users);
         }
 
@@ -319,6 +361,103 @@ namespace KerzelPay.Controllers
 
             var bytes = Encoding.UTF8.GetBytes(csv.ToString());
             return File(bytes, "text/csv", $"kerzelpay-transfers-{DateTime.UtcNow:yyyyMMdd-HHmm}.csv");
+        }
+
+        // POST: /Admin/AddRole
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddRole(string userId, string role)
+        {
+            // Validate the role is one of our known roles
+            var validRoles = new[] { Roles.Admin, Roles.Agent, Roles.User };
+            if (!validRoles.Contains(role))
+            {
+                TempData["Error"] = "Invalid role.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            // Super admin check
+            var targetUser = await _userManager.FindByIdAsync(userId);
+            if (targetUser == null) return NotFound();
+
+            // You can still ADD roles to super admin, just not remove them
+            // No restriction here — adding is safe
+
+            var currentUserId = _userManager.GetUserId(User);
+            if (userId == currentUserId && role == Roles.Admin)
+            {
+                TempData["Error"] = "You cannot modify your own Admin role.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            if (!await _userManager.IsInRoleAsync(user, role))
+            {
+                await _userManager.AddToRoleAsync(user, role);
+                TempData["Success"] = $"{user.Email} → {role} role added.";
+            }
+            else
+            {
+                TempData["Error"] = $"{user.Email} already has the {role} role.";
+            }
+
+            return RedirectToAction(nameof(Users));
+        }
+
+        // POST: /Admin/RemoveRole
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveRole(string userId, string role)
+        {
+            var validRoles = new[] { Roles.Admin, Roles.Agent, Roles.User };
+            if (!validRoles.Contains(role))
+            {
+                TempData["Error"] = "Invalid role.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            // Safety: super admin account is fully protected
+            var targetUser = await _userManager.FindByIdAsync(userId);
+            if (targetUser?.Email?.ToLower() == _superAdminEmail.ToLower())
+            {
+                TempData["Error"] = "The super admin account cannot be modified.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            // Safety: prevent removing your own admin role
+            var currentUserId = _userManager.GetUserId(User);
+            if (userId == currentUserId && role == Roles.Admin)
+            {
+                TempData["Error"] = "You cannot remove your own Admin role.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            if (await _userManager.IsInRoleAsync(user, role))
+            {
+                await _userManager.RemoveFromRoleAsync(user, role);
+
+                // If removing Agent role, also suspend their agent record
+                if (role == Roles.Agent)
+                {
+                    var agent = await _db.Agents.FirstOrDefaultAsync(a => a.UserId == userId);
+                    if (agent != null && agent.Status == AgentStatus.Approved)
+                    {
+                        agent.Status = AgentStatus.Suspended;
+                        await _db.SaveChangesAsync();
+                    }
+                }
+
+                TempData["Success"] = $"{user.Email} → {role} role removed.";
+            }
+            else
+            {
+                TempData["Error"] = $"{user.Email} doesn't have the {role} role.";
+            }
+
+            return RedirectToAction(nameof(Users));
         }
     }
 }
