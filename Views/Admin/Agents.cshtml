@@ -1,0 +1,97 @@
+﻿@model IEnumerable<KerzelPay.Models.Agent>
+@{
+    ViewData["Title"] = "Manage Agents";
+    var statusFilter = ViewBag.Status as string;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>🏪 Manage Agents</h2>
+        <a asp-action="Dashboard" class="btn btn-sm btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="btn-group mb-3">
+        <a asp-action="Agents" class="btn btn-outline-secondary @(statusFilter == null ? "active" : "")">All</a>
+        <a asp-action="Agents" asp-route-status="Pending" class="btn btn-outline-warning @(statusFilter == "Pending" ? "active" : "")">Pending</a>
+        <a asp-action="Agents" asp-route-status="Approved" class="btn btn-outline-success @(statusFilter == "Approved" ? "active" : "")">Approved</a>
+        <a asp-action="Agents" asp-route-status="Rejected" class="btn btn-outline-danger @(statusFilter == "Rejected" ? "active" : "")">Rejected</a>
+        <a asp-action="Agents" asp-route-status="Suspended" class="btn btn-outline-dark @(statusFilter == "Suspended" ? "active" : "")">Suspended</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Store</th>
+                        <th>Applicant</th>
+                        <th>Address</th>
+                        <th>Hours</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model)
+                    {
+                        <tr>
+                            <td><strong>@a.StoreName</strong><br /><small class="text-muted">@a.CreatedAt.ToString("dd MMM yyyy")</small></td>
+                            <td>@(a.User?.FirstName) @(a.User?.LastName)<br /><small class="text-muted">@a.User?.Email</small></td>
+                            <td><small>@a.Address</small></td>
+                            <td><small>@(a.WorkingHours ?? "—")</small></td>
+                            <td>
+                                @switch (a.Status)
+                                {
+                                    case KerzelPay.Models.AgentStatus.Pending:
+                                        <span class="badge bg-warning">Pending</span>
+                                        break;
+                                    case KerzelPay.Models.AgentStatus.Approved:
+
+                                        <span class="badge bg-success">Approved</span>
+                                        break;
+                                    case KerzelPay.Models.AgentStatus.Rejected:
+
+                                        <span class="badge bg-danger">Rejected</span>
+                                        break;
+                                    case KerzelPay.Models.AgentStatus.Suspended:
+
+                                        <span class="badge bg-dark">Suspended</span>
+                                        break;
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (a.Status == KerzelPay.Models.AgentStatus.Pending)
+                                {
+                                    <form asp-action="ApproveAgent" asp-route-id="@a.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-success">✓ Approve</button>
+                                    </form>
+                                    <form asp-action="RejectAgent" asp-route-id="@a.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-danger">✗ Reject</button>
+                                    </form>
+                                }
+                                else if (a.Status == KerzelPay.Models.AgentStatus.Approved)
+                                {
+                                    <form asp-action="SuspendAgent" asp-route-id="@a.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('Suspend this agent?')">
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-warning">⏸ Suspend</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

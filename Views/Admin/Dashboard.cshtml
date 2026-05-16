@@ -1,11 +1,12 @@
-﻿@model IEnumerable<KerzelPay.Models.Agent>
-@{
+﻿@{
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="container mt-4">
-    <h2>⚙️ Admin Dashboard</h2>
-    <p class="text-muted">Quick view (full dashboard coming in Session 10)</p>
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>⚙️ Admin Dashboard</h2>
+        <small class="text-muted">@DateTime.UtcNow.ToString("dddd, dd MMMM yyyy")</small>
+    </div>
 
     @if (TempData["Success"] != null)
     {
@@ -15,55 +16,151 @@
         </div>
     }
 
-    <div class="card shadow-sm mt-3">
-        <div class="card-header">
-            <h5 class="mb-0">⏳ Pending Agent Applications (@Model.Count())</h5>
-        </div>
-        <div class="card-body p-0">
-            @if (!Model.Any())
-            {
-                <p class="text-center text-muted py-5 mb-0">No pending applications.</p>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Store</th>
-                                <th>Applicant</th>
-                                <th>Address</th>
-                                <th>Submitted</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var a in Model)
-                            {
-                                <tr>
-                                    <td><strong>@a.StoreName</strong></td>
-                                    <td>
-                                        @(a.User?.FirstName) @(a.User?.LastName)<br />
-                                        <small class="text-muted">@a.User?.Email</small>
-                                    </td>
-                                    <td><small>@a.Address</small></td>
-                                    <td><small>@a.CreatedAt.ToString("dd MMM yyyy")</small></td>
-                                    <td class="text-end">
-                                        <form asp-action="ApproveAgent" asp-route-id="@a.Id" method="post" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-success">✓ Approve</button>
-                                        </form>
-                                        <form asp-action="RejectAgent" asp-route-id="@a.Id" method="post" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">✗ Reject</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+    <!-- Stat cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                <div class="card-body">
+                    <small>Total Users</small>
+                    <h2 class="mb-0">@ViewBag.TotalUsers</h2>
                 </div>
-            }
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #11998e, #38ef7d); color: white;">
+                <div class="card-body">
+                    <small>Active Agents</small>
+                    <h2 class="mb-0">
+                        @ViewBag.TotalAgents
+                        @if ((int)ViewBag.PendingAgents > 0)
+                        {
+                            <small class="ms-1" style="font-size:0.5em;">(@ViewBag.PendingAgents pending)</small>
+                        }
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">
+                <div class="card-body">
+                    <small>Total Transfers</small>
+                    <h2 class="mb-0">@ViewBag.TotalTransfers</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #ffecd2, #fcb69f); color: #333;">
+                <div class="card-body">
+                    <small>Commission Earned</small>
+                    <h2 class="mb-0">$@((decimal)ViewBag.TotalCommission)</h2>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+
+    <!-- Charts -->
+    <div class="row mb-4">
+        <div class="col-md-8 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>📈 Transfers — Last 30 Days</h5>
+                    <canvas id="transfersChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>💱 Currency Breakdown</h5>
+                    <canvas id="currencyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick navigation -->
+    <!-- Quick navigation -->
+    <div class="row">
+        <div class="col-md-4 col-lg mb-3">
+            <a asp-action="Agents" class="text-decoration-none">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h1>🏪</h1><h5>Manage Agents</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 col-lg mb-3">
+            <a asp-action="Users" class="text-decoration-none">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h1>👥</h1><h5>Users</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 col-lg mb-3">
+            <a asp-action="Currencies" class="text-decoration-none">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h1>💱</h1><h5>Currencies</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 col-lg mb-3">
+            <a asp-action="Transfers" class="text-decoration-none">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h1>📜</h1><h5>All Transfers</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 col-lg mb-3">
+            <a asp-action="Settings" class="text-decoration-none">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h1>⚙️</h1><h5>Settings</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        const dailyData = @Html.Raw(ViewBag.DailyTransfersJson);
+        const currencyData = @Html.Raw(ViewBag.CurrencyBreakdownJson);
+
+        // Line chart — transfers per day
+        new Chart(document.getElementById('transfersChart'), {
+            type: 'line',
+            data: {
+                labels: dailyData.map(d => d.date),
+                datasets: [{
+                    label: 'Transfers',
+                    data: dailyData.map(d => d.count),
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        // Pie chart — currency breakdown
+        new Chart(document.getElementById('currencyChart'), {
+            type: 'doughnut',
+            data: {
+                labels: currencyData.map(c => c.Currency),
+                datasets: [{
+                    data: currencyData.map(c => c.Count),
+                    backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1']
+                }]
+            },
+            options: { responsive: true }
+        });
+    </script>
+}

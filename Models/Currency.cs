@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace KerzelPay.Models
 {
@@ -16,6 +17,7 @@ namespace KerzelPay.Models
         public string Symbol { get; set; } = string.Empty; // $, €, ل.ل
 
         // Exchange rate relative to USD (1 USD = ExchangeRateToUsd of this currency)
+        [Column(TypeName = "decimal(18,6)")]
         public decimal ExchangeRateToUsd { get; set; } = 1m;
 
         public bool IsActive { get; set; } = true;

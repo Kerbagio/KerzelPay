@@ -77,6 +77,7 @@ using (var scope = app.Services.CreateScope())
 
     var context = services.GetRequiredService<ApplicationDbContext>();
     CurrencySeeder.SeedCurrencies(context);
+    SettingsSeeder.SeedDefaults(context);
 
     // Seed demo agents
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();

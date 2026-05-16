@@ -11,7 +11,17 @@ namespace KerzelPay.Services
         private readonly CurrencyService _currencyService;
         private readonly IEmailService _emailService;
 
-        private const decimal COMMISSION_PERCENT = 0.01m;
+        private async Task<decimal> GetCommissionRateAsync()
+        {
+            var setting = await _db.AppSettings
+                .FirstOrDefaultAsync(s => s.Key == "CommissionPercent");
+
+            if (setting != null && decimal.TryParse(setting.Value, out var rate))
+            {
+                return rate / 100m;  // stored as "1.5" meaning 1.5%, return 0.015
+            }
+            return 0.01m;   // fallback: 1%
+        }
 
         public TransferService(
             ApplicationDbContext db,
@@ -58,7 +68,8 @@ namespace KerzelPay.Services
                     return TransferResult.Fail("You cannot transfer money to the same account.");
 
                 // Calculate commission
-                var commission = Math.Round(amount * COMMISSION_PERCENT, 2);
+                var commissionRate = await GetCommissionRateAsync();
+                var commission = Math.Round(amount * commissionRate, 2);
                 var totalDebit = amount + commission;
 
                 // Check balance
@@ -158,7 +169,8 @@ namespace KerzelPay.Services
                 if (sourceAccount == null)
                     return TransferResult.Fail("Source account not found.");
 
-                var commission = Math.Round(amount * COMMISSION_PERCENT, 2);
+                var commissionRate = await GetCommissionRateAsync();
+                var commission = Math.Round(amount * commissionRate, 2);
                 var totalDebit = amount + commission;
 
                 if (sourceAccount.Balance < totalDebit)

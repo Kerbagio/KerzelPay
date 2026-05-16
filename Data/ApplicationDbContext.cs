@@ -16,6 +16,7 @@ namespace KerzelPay.Data
         public DbSet<Agent> Agents { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<AppSetting> AppSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -52,6 +53,11 @@ namespace KerzelPay.Data
             // Agent: one user can only be one agent
             builder.Entity<Agent>()
                 .HasIndex(a => a.UserId)
+                .IsUnique();
+
+            // AppSetting: unique key
+            builder.Entity<AppSetting>()
+                .HasIndex(s => s.Key)
                 .IsUnique();
         }
     }

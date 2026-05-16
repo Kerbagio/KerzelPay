@@ -1,0 +1,91 @@
+﻿@model IEnumerable<KerzelPay.Models.Transfer>
+@{
+    ViewData["Title"] = "All Transfers";
+    var q = ViewBag.Query as string;
+    var typeFilter = ViewBag.TypeFilter as string;
+    var statusFilter = ViewBag.StatusFilter as string;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>📜 All Transfers</h2>
+        <div>
+            <a asp-action="ExportTransfers" class="btn btn-sm btn-success">📥 Export CSV</a>
+            <a asp-action="Dashboard" class="btn btn-sm btn-outline-secondary">← Dashboard</a>
+        </div>
+    </div>
+
+    <form asp-action="Transfers" method="get" class="row g-2 mb-3">
+        <div class="col-md-5">
+            <input type="text" name="q" value="@q" class="form-control" placeholder="Search by tracking number..." />
+        </div>
+        <div class="col-md-3">
+            <select name="type" class="form-select">
+                <option value="">All types</option>
+                <option value="AccountToAccount" selected="@(typeFilter == "AccountToAccount")">A2A</option>
+                <option value="MobileOmt" selected="@(typeFilter == "MobileOmt")">OMT</option>
+                <option value="TopUp" selected="@(typeFilter == "TopUp")">Top-Up</option>
+                <option value="CashOut" selected="@(typeFilter == "CashOut")">Cash-Out</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="status" class="form-select">
+                <option value="">All statuses</option>
+                <option value="Completed" selected="@(statusFilter == "Completed")">Completed</option>
+                <option value="Pending" selected="@(statusFilter == "Pending")">Pending</option>
+                <option value="Failed" selected="@(statusFilter == "Failed")">Failed</option>
+                <option value="Cancelled" selected="@(statusFilter == "Cancelled")">Cancelled</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead class="table-light">
+                    <tr><th>Date</th><th>Tracking</th><th>Type</th><th>From → To</th><th>Amount</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model)
+                    {
+                        <tr>
+                            <td><small>@t.CreatedAt.ToString("dd MMM HH:mm")</small></td>
+                            <td><code class="small">@t.TrackingNumber</code></td>
+                            <td><small>@t.Type</small></td>
+                            <td>
+                                <small>
+                                    @(t.SourceAccount?.SerialNumber ?? "External") →
+                                    @(t.DestinationAccount?.SerialNumber ?? t.RecipientMobile ?? "—")
+                                </small>
+                            </td>
+                            <td><small>@t.SourceCurrencyCode @t.Amount.ToString("N2")</small></td>
+                            <td>
+                                @switch (t.Status)
+                                {
+                                    case KerzelPay.Models.TransferStatus.Completed:
+                                        <span class="badge bg-success">@t.Status</span>
+                                        break;
+                                    case KerzelPay.Models.TransferStatus.Pending:
+
+                                        <span class="badge bg-warning">@t.Status</span>
+                                        break;
+                                    case KerzelPay.Models.TransferStatus.Failed:
+
+                                        <span class="badge bg-danger">@t.Status</span>
+                                        break;
+                                    case KerzelPay.Models.TransferStatus.Cancelled:
+
+                                        <span class="badge bg-secondary">@t.Status</span>
+                                        break;
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
