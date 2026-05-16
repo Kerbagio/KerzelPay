@@ -78,7 +78,10 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<ApplicationDbContext>();
     CurrencySeeder.SeedCurrencies(context);
 
-    // Live rate refresh from Frankfurter API (LBP excluded, admin manages it manually)
+    // Seed demo agents
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+    await AgentSeeder.SeedAgentsAsync(context, userManager);
+
     var rateRefreshService = services.GetRequiredService<KerzelPay.Services.RateRefreshService>();
     await rateRefreshService.RefreshRatesAsync();
 }

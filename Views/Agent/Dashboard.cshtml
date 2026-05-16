@@ -1,0 +1,86 @@
+﻿@model KerzelPay.Models.Agent
+@{
+    ViewData["Title"] = "Agent Dashboard";
+    var transactions = ViewBag.RecentTransactions as IEnumerable<KerzelPay.Models.Transfer>;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>🏪 @Model.StoreName</h2>
+            <p class="text-muted mb-0">Agent Dashboard</p>
+        </div>
+        <span class="badge bg-success fs-6">@Model.Status</span>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-1">Total Transactions</h6>
+                    <h2 class="mb-0">@ViewBag.TotalTransactions</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-1">Commissions Earned</h6>
+                    <h2 class="mb-0 text-success">$@Model.TotalCommission.ToString("N2")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-1">Member Since</h6>
+                    <h5 class="mb-0">@Model.CreatedAt.ToString("MMM yyyy")</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Recent Transactions</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (transactions == null || !transactions.Any())
+            {
+                <p class="text-center text-muted py-5 mb-0">
+                    No transactions yet. Agent cash-in / cash-out will appear here.
+                </p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Tracking</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in transactions)
+                            {
+                                <tr>
+                                    <td><small>@t.CreatedAt.ToString("dd MMM HH:mm")</small></td>
+                                    <td><code>@t.TrackingNumber</code></td>
+                                    <td>@t.Type</td>
+                                    <td>@t.SourceCurrencyCode @t.Amount.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-action="Status" class="btn btn-outline-secondary">View store info</a>
+    </div>
+</div>

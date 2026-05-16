@@ -1,0 +1,86 @@
+﻿@model IEnumerable<KerzelPay.Models.Agent>
+@{
+    ViewData["Title"] = "Find Agents";
+}
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="" />
+
+<div class="container-fluid mt-3">
+    <div class="container mb-3">
+        <h2>📍 Find a Kerzel Pay Agent</h2>
+        <p class="text-muted">
+            Click any pin to view store details. @Model.Count() agent@(Model.Count() == 1 ? "" : "s") nearby.
+        </p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="container">
+            <div class="alert alert-info text-center">
+                No agents available yet. Check back soon!
+            </div>
+        </div>
+    }
+    else
+    {
+        <div id="agentMap" style="height: 600px; width: 100%;"></div>
+    }
+</div>
+
+@section Scripts {
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <script>
+        // Initialize map centered on Beirut by default
+        const map = L.map('agentMap').setView([33.8938, 35.5018], 11);
+
+        // Free OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Agent markers
+        const agents = [
+            @foreach (var a in Model)
+            {
+                    @:{
+                    @:    name: "@Html.Raw(Html.Encode(a.StoreName))",
+                    @:    address: "@Html.Raw(Html.Encode(a.Address))",
+                    @:    hours: "@Html.Raw(Html.Encode(a.WorkingHours ?? "Not specified"))",
+                    @:    lat: @a.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    @:    lng: @a.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    @:},
+            }
+        ];
+
+        // Group markers in a layer for auto-fitting bounds
+        const markers = L.layerGroup();
+
+        agents.forEach(a => {
+            const marker = L.marker([a.lat, a.lng])
+                .bindPopup(`
+                    <div style="min-width: 200px;">
+                        <strong style="font-size: 1.1em;">${a.name}</strong><br/>
+                        <small>📍 ${a.address}</small><br/>
+                        <small>🕒 ${a.hours}</small>
+                    </div>
+                `);
+            markers.addLayer(marker);
+        });
+
+        markers.addTo(map);
+
+        // Auto-fit all pins in view if we have any
+        if (agents.length > 0) {
+            const group = L.featureGroup(markers.getLayers());
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+    </script>
+}

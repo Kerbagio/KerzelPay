@@ -1,0 +1,69 @@
+﻿@model IEnumerable<KerzelPay.Models.Agent>
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container mt-4">
+    <h2>⚙️ Admin Dashboard</h2>
+    <p class="text-muted">Quick view (full dashboard coming in Session 10)</p>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm mt-3">
+        <div class="card-header">
+            <h5 class="mb-0">⏳ Pending Agent Applications (@Model.Count())</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <p class="text-center text-muted py-5 mb-0">No pending applications.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Store</th>
+                                <th>Applicant</th>
+                                <th>Address</th>
+                                <th>Submitted</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var a in Model)
+                            {
+                                <tr>
+                                    <td><strong>@a.StoreName</strong></td>
+                                    <td>
+                                        @(a.User?.FirstName) @(a.User?.LastName)<br />
+                                        <small class="text-muted">@a.User?.Email</small>
+                                    </td>
+                                    <td><small>@a.Address</small></td>
+                                    <td><small>@a.CreatedAt.ToString("dd MMM yyyy")</small></td>
+                                    <td class="text-end">
+                                        <form asp-action="ApproveAgent" asp-route-id="@a.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-success">✓ Approve</button>
+                                        </form>
+                                        <form asp-action="RejectAgent" asp-route-id="@a.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">✗ Reject</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
