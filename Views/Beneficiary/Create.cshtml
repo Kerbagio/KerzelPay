@@ -1,0 +1,55 @@
+﻿@model KerzelPay.ViewModels.BeneficiaryViewModel
+@{
+    ViewData["Title"] = "Add Beneficiary";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-4">Add a beneficiary</h3>
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label"></label>
+                            <input asp-for="FullName" class="form-control" placeholder="John Doe" />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="alert alert-secondary small">
+                            💡 Add the recipient by their <strong>Kerzel Pay account number</strong>
+                            OR their <strong>mobile number</strong> (OMT-style). You only need one.
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="AccountSerialNumber" class="form-label"></label>
+                            <input asp-for="AccountSerialNumber" class="form-control"
+                                   placeholder="KP-2026-XXXXXX" style="text-transform: uppercase;" />
+                            <span asp-validation-for="AccountSerialNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="text-center mb-3"><small class="text-muted">— OR —</small></div>
+
+                        <div class="mb-3">
+                            <label asp-for="MobileNumber" class="form-label"></label>
+                            <input asp-for="MobileNumber" class="form-control" placeholder="+961 71 234 567" />
+                            <span asp-validation-for="MobileNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Add beneficiary</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

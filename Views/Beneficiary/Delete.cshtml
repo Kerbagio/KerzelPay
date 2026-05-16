@@ -1,0 +1,45 @@
+﻿@model KerzelPay.Models.Beneficiary
+@{
+    ViewData["Title"] = "Delete Beneficiary";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-danger">
+                <div class="card-body">
+                    <h3 class="text-danger">⚠️ Remove beneficiary</h3>
+                    <p class="mb-4">Are you sure you want to remove this beneficiary from your list?</p>
+
+                    <dl class="row">
+                        <dt class="col-sm-4">Name</dt>
+                        <dd class="col-sm-8">@Model.FullName</dd>
+
+                        @if (!string.IsNullOrEmpty(Model.AccountSerialNumber))
+                        {
+                            <dt class="col-sm-4">Account number</dt>
+                            <dd class="col-sm-8"><code>@Model.AccountSerialNumber</code></dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.MobileNumber))
+                        {
+                            <dt class="col-sm-4">Mobile</dt>
+                            <dd class="col-sm-8">@Model.MobileNumber</dd>
+                        }
+
+                        <dt class="col-sm-4">Added on</dt>
+                        <dd class="col-sm-8">@Model.CreatedAt.ToString("dd MMM yyyy")</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Yes, remove</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
