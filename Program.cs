@@ -5,12 +5,57 @@ using KerzelPay.Seeders;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // MVC + Razor Pages (Razor Pages needed for the Identity UI scaffolded pages)
 builder.Services.AddControllersWithViews();
+// ---- Swagger (API docs) ----
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Kerzel Pay API",
+        Version = "v1",
+        Description = "Public REST API for the Kerzel Pay money transfer platform.",
+        Contact = new OpenApiContact
+        {
+            Name = "Anthony Kerbage & Yorgo Moukarzel",
+            Email = "informationcsv@gmail.com"
+        }
+    });
+
+    // JWT auth in Swagger UI
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Paste your JWT token here. Format: Bearer {token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 builder.Services.AddRazorPages();
 
 // EF Core + SQL Server
@@ -32,6 +77,8 @@ builder.Services.AddHttpClient("Frankfurter", client =>
 builder.Services.AddScoped<KerzelPay.Services.RateRefreshService>();
 builder.Services.AddScoped<KerzelPay.Services.IEmailService, KerzelPay.Services.SmtpEmailService>();
 
+builder.Services.AddScoped<KerzelPay.Services.JwtService>();
+
 // ASP.NET Core Identity with our custom ApplicationUser + Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
@@ -45,6 +92,23 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+// ---- JWT Authentication (for the REST API) ----
+// Note: Identity already added cookie auth. We add JWT as an ADDITIONAL scheme.
+builder.Services.AddAuthentication()
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
 // Stripe configuration — keys come from User Secrets (safe, never in Git)
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 var app = builder.Build();
@@ -54,6 +118,18 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+// Swagger only in development (production should disable)
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Kerzel Pay API V1");
+        c.RoutePrefix = "swagger";  // available at /swagger
+    });
+}
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
