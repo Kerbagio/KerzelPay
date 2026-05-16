@@ -1,0 +1,73 @@
+﻿@model KerzelPay.ViewModels.ReviewViewModel
+@{
+    ViewData["Title"] = "Write a Review";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-4">⭐ Rate Kerzel Pay</h3>
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3 text-center">
+                            <label class="form-label fw-bold d-block mb-2">Your rating</label>
+                            <div class="star-rating">
+                                @for (int i = 5; i >= 1; i--)
+                                {
+                                    <input type="radio" asp-for="Rating" value="@i" id="star@i" />
+                                    <label for="star@i" title="@i star@(i == 1 ? "" : "s")">★</label>
+                                }
+                            </div>
+                            <span asp-validation-for="Rating" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Comment" class="form-label">Comment (optional)</label>
+                            <textarea asp-for="Comment" class="form-control" rows="4"
+                                      placeholder="Tell us about your experience..."></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .star-rating {
+        display: inline-flex;
+        flex-direction: row-reverse;
+        font-size: 2.5rem;
+    }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            color: #ddd;
+            cursor: pointer;
+            padding: 0 0.1em;
+            transition: color 0.2s;
+        }
+
+            .star-rating input:checked ~ label,
+            .star-rating label:hover,
+            .star-rating label:hover ~ label {
+                color: #ffc107;
+            }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

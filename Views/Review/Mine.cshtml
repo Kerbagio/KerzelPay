@@ -1,0 +1,55 @@
+﻿@model IEnumerable<KerzelPay.Models.Review>
+@{
+    ViewData["Title"] = "My Reviews";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>⭐ My Reviews</h2>
+        <a asp-action="Create" class="btn btn-primary">+ New Review</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-5">
+            <h5>You haven't reviewed Kerzel Pay yet.</h5>
+            <a asp-action="Create" class="btn btn-primary mt-2">Write a review</a>
+        </div>
+    }
+    else
+    {
+        @foreach (var review in Model)
+        {
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <span style="color: @(i <= review.Rating ? "#ffc107" : "#ddd"); font-size: 1.2em;">★</span>
+                            }
+                            <span class="text-muted ms-2">— @review.CreatedAt.ToString("dd MMM yyyy")</span>
+                        </div>
+                        <form asp-action="Delete" asp-route-id="@review.Id" method="post"
+                              onsubmit="return confirm('Delete this review?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </div>
+                    @if (!string.IsNullOrEmpty(review.Comment))
+                    {
+                        <p class="mt-2 mb-0">@review.Comment</p>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>

@@ -1,0 +1,71 @@
+﻿@model IEnumerable<KerzelPay.Models.Review>
+@{
+    ViewData["Title"] = "Customer Reviews";
+    var average = ViewBag.AverageRating ?? 0.0;
+    var total = ViewBag.TotalReviews ?? 0;
+}
+
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <h2>⭐ What Our Customers Say</h2>
+        @if (total > 0)
+        {
+            <p class="lead">
+                <strong>@average</strong> / 5
+                — based on @total review@(total == 1 ? "" : "s")
+            </p>
+        }
+        else
+        {
+            <p class="text-muted">No reviews yet. Be the first!</p>
+        }
+
+        @if (User.Identity?.IsAuthenticated == true && User.IsInRole(KerzelPay.Constants.Roles.User))
+        {
+            <a asp-action="Create" class="btn btn-primary mt-2">+ Write a Review</a>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        @foreach (var review in Model)
+        {
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= review.Rating)
+                                    {
+                                        <span style="color: #ffc107; font-size: 1.2em;">★</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #ddd; font-size: 1.2em;">★</span>
+                                    }
+                                }
+                            </div>
+                            <small class="text-muted">@review.CreatedAt.ToString("dd MMM yyyy")</small>
+                        </div>
+                        @if (!string.IsNullOrEmpty(review.Comment))
+                        {
+                            <p class="card-text">@review.Comment</p>
+                        }
+                        <small class="text-muted">
+                            — @(review.User?.FirstName ?? "Anonymous") @(review.User?.LastName?.Substring(0, 1) ?? "")
+                        </small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
