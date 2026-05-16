@@ -30,13 +30,15 @@ namespace KerzelPay.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly KerzelPay.Services.IEmailService _kerzelEmailService;
 
         public RegisterModel(
-            UserManager<ApplicationUser> userManager,
-            IUserStore<ApplicationUser> userStore,
-            SignInManager<ApplicationUser> signInManager,
-            ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+        UserManager<ApplicationUser> userManager,
+        IUserStore<ApplicationUser> userStore,
+        SignInManager<ApplicationUser> signInManager,
+        ILogger<RegisterModel> logger,
+        IEmailSender emailSender,
+        KerzelPay.Services.IEmailService kerzelEmailService)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -44,6 +46,7 @@ namespace KerzelPay.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _kerzelEmailService = kerzelEmailService;
         }
 
         /// <summary>
@@ -134,6 +137,12 @@ namespace KerzelPay.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
                     await _userManager.AddToRoleAsync(user, KerzelPay.Constants.Roles.User);
+
+                    // Welcome email (best-effort)
+                    await _kerzelEmailService.SendAsync(
+                        user.Email!,
+                        "Welcome to Kerzel Pay!",
+                        KerzelPay.Services.EmailTemplates.Welcome(user.FirstName));
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);

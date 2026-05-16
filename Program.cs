@@ -30,6 +30,7 @@ builder.Services.AddHttpClient("Frankfurter", client =>
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 builder.Services.AddScoped<KerzelPay.Services.RateRefreshService>();
+builder.Services.AddScoped<KerzelPay.Services.IEmailService, KerzelPay.Services.SmtpEmailService>();
 
 // ASP.NET Core Identity with our custom ApplicationUser + Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>

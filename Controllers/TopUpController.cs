@@ -17,15 +17,18 @@ namespace KerzelPay.Controllers
         private readonly ApplicationDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly StripeService _stripeService;
+        private readonly IEmailService _emailService;
 
         public TopUpController(
-            ApplicationDbContext db,
-            UserManager<ApplicationUser> userManager,
-            StripeService stripeService)
+        ApplicationDbContext db,
+        UserManager<ApplicationUser> userManager,
+        StripeService stripeService,
+        IEmailService emailService)
         {
             _db = db;
             _userManager = userManager;
             _stripeService = stripeService;
+            _emailService = emailService;
         }
 
         // GET: /TopUp/Index/5  (the 5 = account id)
@@ -156,6 +159,16 @@ namespace KerzelPay.Controllers
 
             _db.Transfers.Add(topUp);
             await _db.SaveChangesAsync();
+
+            // Send confirmation email
+            var user = await _userManager.GetUserAsync(User);
+            if (user?.Email != null)
+            {
+                await _emailService.SendAsync(
+                    user.Email,
+                    $"Top-up successful — {topUp.TrackingNumber}",
+                    EmailTemplates.TopUpSuccess(topUp));
+            }
 
             TempData["Success"] = $"Top-up successful! {currencyCode} {originalAmount:N2} added to your account.";
             return View(topUp);

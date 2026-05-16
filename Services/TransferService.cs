@@ -9,15 +9,18 @@ namespace KerzelPay.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly CurrencyService _currencyService;
+        private readonly IEmailService _emailService;
 
-        // Flat commission per transfer (in source currency)
-        // Could be made admin-configurable in Session 11
-        private const decimal COMMISSION_PERCENT = 0.01m; // 1%
+        private const decimal COMMISSION_PERCENT = 0.01m;
 
-        public TransferService(ApplicationDbContext db, CurrencyService currencyService)
+        public TransferService(
+            ApplicationDbContext db,
+            CurrencyService currencyService,
+            IEmailService emailService)
         {
             _db = db;
             _currencyService = currencyService;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -117,7 +120,10 @@ namespace KerzelPay.Services
                 });
 
                 await _db.SaveChangesAsync();
-                await dbTransaction.CommitAsync();   // ✅ all good, commit
+                await dbTransaction.CommitAsync();
+
+                // Fire-and-forget emails (after commit, so we never send for a rolled-back transfer)
+                await SendA2AEmailsAsync(transfer, sourceAccount, destinationAccount);
 
                 return TransferResult.Ok(transfer);
             }
@@ -196,12 +202,62 @@ namespace KerzelPay.Services
                 await _db.SaveChangesAsync();
                 await dbTransaction.CommitAsync();
 
+                await SendOmtEmailAsync(transfer, sourceAccount);
+
                 return TransferResult.Ok(transfer);
             }
             catch (Exception ex)
             {
                 await dbTransaction.RollbackAsync();
                 return TransferResult.Fail($"Transfer failed: {ex.Message}");
+            }
+        }
+        // ----- Email helpers -----
+
+        private async Task SendA2AEmailsAsync(
+            Transfer transfer,
+            Account sourceAccount,
+            Account destinationAccount)
+        {
+            // Look up sender + receiver users for their emails
+            var sender = await _db.Users.FindAsync(sourceAccount.UserId);
+            var receiver = await _db.Users.FindAsync(destinationAccount.UserId);
+
+            if (sender?.Email != null)
+            {
+                var html = EmailTemplates.TransferSent(
+                    transfer,
+                    destinationAccount.SerialNumber);
+                await _emailService.SendAsync(
+                    sender.Email,
+                    $"Transfer sent — {transfer.TrackingNumber}",
+                    html);
+            }
+
+            if (receiver?.Email != null)
+            {
+                var html = EmailTemplates.TransferReceived(
+                    transfer,
+                    sourceAccount.SerialNumber);
+                await _emailService.SendAsync(
+                    receiver.Email,
+                    $"You received money — {transfer.TrackingNumber}",
+                    html);
+            }
+        }
+
+        private async Task SendOmtEmailAsync(Transfer transfer, Account sourceAccount)
+        {
+            var sender = await _db.Users.FindAsync(sourceAccount.UserId);
+
+            if (sender?.Email != null)
+            {
+                var recipientLabel = $"{transfer.RecipientName} ({transfer.RecipientMobile})";
+                var html = EmailTemplates.TransferSent(transfer, recipientLabel);
+                await _emailService.SendAsync(
+                    sender.Email,
+                    $"OMT transfer sent — {transfer.TrackingNumber}",
+                    html);
             }
         }
     }
@@ -218,4 +274,6 @@ namespace KerzelPay.Services
         public static TransferResult Fail(string error) =>
             new() { Success = false, ErrorMessage = error };
     }
+
+
 }
