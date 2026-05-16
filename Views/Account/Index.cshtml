@@ -1,0 +1,80 @@
+﻿@model IEnumerable<KerzelPay.Models.Account>
+@{
+    ViewData["Title"] = "My Accounts";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>💳 My Accounts</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            + New Account
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-5">
+            <h4>You don't have any accounts yet.</h4>
+            <p>Create your first account to start sending and receiving money.</p>
+            <a asp-action="Create" class="btn btn-primary mt-2">Create my first account</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var account in Model)
+            {
+                <div class="col-md-6 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-muted mb-1">@account.Currency.Code Account</h6>
+                                    <h4 class="mb-2">@account.Currency.Symbol @account.Balance.ToString("N2")</h4>
+                                    <small class="text-secondary">@account.SerialNumber</small>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                            data-bs-toggle="dropdown">
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" asp-action="Details" asp-route-id="@account.Id">
+                                                Details
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@account.Id">
+                                                Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <hr />
+                            <small class="text-muted">
+                                Created on @account.CreatedAt.ToString("dd MMM yyyy")
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

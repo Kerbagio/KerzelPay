@@ -1,0 +1,47 @@
+﻿@model KerzelPay.Models.Account
+@{
+    ViewData["Title"] = "Delete Account";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-danger">
+                <div class="card-body">
+                    <h3 class="text-danger">⚠️ Delete Account</h3>
+                    <p class="mb-4">Are you sure you want to delete this account? This action cannot be undone.</p>
+
+                    <dl class="row">
+                        <dt class="col-sm-4">Serial Number</dt>
+                        <dd class="col-sm-8"><code>@Model.SerialNumber</code></dd>
+
+                        <dt class="col-sm-4">Currency</dt>
+                        <dd class="col-sm-8">@Model.Currency.Code</dd>
+
+                        <dt class="col-sm-4">Current Balance</dt>
+                        <dd class="col-sm-8">
+                            <strong>@Model.Currency.Symbol @Model.Balance.ToString("N2")</strong>
+                        </dd>
+                    </dl>
+
+                    @if (Model.Balance > 0)
+                    {
+                        <div class="alert alert-warning">
+                            This account has a positive balance. You must transfer the funds out before deleting it.
+                        </div>
+                    }
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-danger" @(Model.Balance > 0 ? "disabled" : "")>
+                                Yes, delete this account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

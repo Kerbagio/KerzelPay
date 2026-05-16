@@ -1,0 +1,39 @@
+﻿@model KerzelPay.Models.Account
+@{
+    ViewData["Title"] = "Account Details";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3>Account Details</h3>
+                    <hr />
+
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Serial Number</dt>
+                        <dd class="col-sm-8"><code>@Model.SerialNumber</code></dd>
+
+                        <dt class="col-sm-4">Currency</dt>
+                        <dd class="col-sm-8">@Model.Currency.Code — @Model.Currency.Name</dd>
+
+                        <dt class="col-sm-4">Balance</dt>
+                        <dd class="col-sm-8">
+                            <h5 class="mb-0">@Model.Currency.Symbol @Model.Balance.ToString("N2")</h5>
+                        </dd>
+
+                        <dt class="col-sm-4">Created</dt>
+                        <dd class="col-sm-8">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+                    </dl>
+
+                    <hr />
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">← Back to accounts</a>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
