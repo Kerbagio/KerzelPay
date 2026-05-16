@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // MVC + Razor Pages (Razor Pages needed for the Identity UI scaffolded pages)
@@ -22,6 +23,13 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<KerzelPay.Services.StripeService>();
 builder.Services.AddScoped<KerzelPay.Services.CurrencyService>();
 builder.Services.AddScoped<KerzelPay.Services.TransferService>();
+// HttpClient for the live currency-rates API (Frankfurter / ECB)
+builder.Services.AddHttpClient("Frankfurter", client =>
+{
+    client.BaseAddress = new Uri("https://api.frankfurter.app/");
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+builder.Services.AddScoped<KerzelPay.Services.RateRefreshService>();
 
 // ASP.NET Core Identity with our custom ApplicationUser + Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
@@ -68,6 +76,10 @@ using (var scope = app.Services.CreateScope())
 
     var context = services.GetRequiredService<ApplicationDbContext>();
     CurrencySeeder.SeedCurrencies(context);
+
+    // Live rate refresh from Frankfurter API (LBP excluded, admin manages it manually)
+    var rateRefreshService = services.GetRequiredService<KerzelPay.Services.RateRefreshService>();
+    await rateRefreshService.RefreshRatesAsync();
 }
 
 app.Run();
