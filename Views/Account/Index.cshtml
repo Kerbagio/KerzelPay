@@ -55,10 +55,16 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
+                                            <a class="dropdown-item" asp-controller="TopUp" asp-action="Index" asp-route-id="@account.Id">
+                                                💰 Top Up
+                                            </a>
+                                        </li>
+                                        <li>
                                             <a class="dropdown-item" asp-action="Details" asp-route-id="@account.Id">
                                                 Details
                                             </a>
                                         </li>
+                                        <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@account.Id">
                                                 Delete

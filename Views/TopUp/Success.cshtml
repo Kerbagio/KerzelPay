@@ -1,0 +1,42 @@
+﻿@model KerzelPay.Models.Transfer
+@{
+    ViewData["Title"] = "Top Up Successful";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-success">
+                <div class="card-body text-center">
+                    <div class="display-1 text-success mb-3">✓</div>
+                    <h3 class="mb-3">Top Up Successful!</h3>
+                    <p class="lead">
+                        @Model.DestinationCurrencyCode @Model.Amount.ToString("N2")
+                        has been added to your account.
+                    </p>
+
+                    <hr />
+
+                    <dl class="row text-start small mb-0">
+                        <dt class="col-sm-5">Tracking number</dt>
+                        <dd class="col-sm-7"><code>@Model.TrackingNumber</code></dd>
+
+                        <dt class="col-sm-5">Date</dt>
+                        <dd class="col-sm-7">@Model.CompletedAt?.ToString("dd MMM yyyy HH:mm")</dd>
+
+                        <dt class="col-sm-5">Status</dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-success">@Model.Status</span>
+                        </dd>
+                    </dl>
+
+                    <hr />
+
+                    <a asp-controller="Account" asp-action="Index" class="btn btn-primary">
+                        Back to my accounts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

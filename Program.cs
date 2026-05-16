@@ -4,6 +4,7 @@ using KerzelPay.Repositories;
 using KerzelPay.Seeders;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Repository Pattern — register the generic repository
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<KerzelPay.Services.StripeService>();
+
 // ASP.NET Core Identity with our custom ApplicationUser + Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
@@ -31,6 +34,8 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+// Stripe configuration — keys come from User Secrets (safe, never in Git)
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
