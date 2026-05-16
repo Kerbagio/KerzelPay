@@ -1,0 +1,55 @@
+﻿@model KerzelPay.Models.Transfer?
+@{
+    ViewData["Title"] = "Track Transfer";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-4">🔍 Track a Transfer</h3>
+
+                    <form asp-action="Track" method="get" class="mb-4">
+                        <div class="input-group">
+                            <input type="text" name="tracking" value="@ViewBag.Tracking"
+                                   class="form-control" placeholder="TRX-YYYYMMDD-XXXXXX" />
+                            <button type="submit" class="btn btn-primary">Track</button>
+                        </div>
+                    </form>
+
+                    @if (ViewBag.NotFound == true)
+                    {
+                        <div class="alert alert-warning">
+                            No transfer found with that tracking number.
+                        </div>
+                    }
+
+                    @if (Model != null)
+                    {
+                        <hr />
+                        <h5>Transfer Found</h5>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Tracking</dt>
+                            <dd class="col-sm-8"><code>@Model.TrackingNumber</code></dd>
+
+                            <dt class="col-sm-4">Type</dt>
+                            <dd class="col-sm-8">@Model.Type</dd>
+
+                            <dt class="col-sm-4">Amount</dt>
+                            <dd class="col-sm-8">@Model.SourceCurrencyCode @Model.Amount.ToString("N2")</dd>
+
+                            <dt class="col-sm-4">Status</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-success">@Model.Status</span>
+                            </dd>
+
+                            <dt class="col-sm-4">Date</dt>
+                            <dd class="col-sm-8">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+                        </dl>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

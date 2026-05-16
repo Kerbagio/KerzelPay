@@ -1,0 +1,132 @@
+﻿@model IEnumerable<KerzelPay.Models.Transfer>
+@{
+    ViewData["Title"] = "Transactions";
+    var currentUserId = ViewBag.CurrentUserId as string;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📜 Transactions</h2>
+        <a asp-action="Create" class="btn btn-primary">+ New Transfer</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-5">
+            <h5>No transactions yet.</h5>
+            <p class="text-muted">Your transfer history will appear here.</p>
+            <a asp-action="Create" class="btn btn-primary mt-2">Make your first transfer</a>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Tracking</th>
+                            <th>Direction</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Model)
+                        {
+                            var isSender = t.SourceAccount?.UserId == currentUserId;
+                            var isReceiver = t.DestinationAccount?.UserId == currentUserId;
+
+                            <tr>
+                                <td>
+                                    <small>@t.CreatedAt.ToString("dd MMM yyyy")</small><br />
+                                    <small class="text-muted">@t.CreatedAt.ToString("HH:mm")</small>
+                                </td>
+                                <td>
+                                    @switch (t.Type)
+                                    {
+                                        case KerzelPay.Models.TransferType.AccountToAccount:
+                                            <span class="badge bg-primary">A2A</span>
+                                            break;
+                                        case KerzelPay.Models.TransferType.MobileOmt:
+                                            <span class="badge bg-info">OMT</span>
+                                            break;
+                                        case KerzelPay.Models.TransferType.TopUp:
+                                            <span class="badge bg-success">Top-Up</span>
+                                            break;
+                                        case KerzelPay.Models.TransferType.CashOut:
+                                            <span class="badge bg-warning">Cash-Out</span>
+                                            break;
+                                    }
+                                </td>
+                                <td><code class="small">@t.TrackingNumber</code></td>
+                                <td>
+                                    @if (isSender && !isReceiver)
+                                    {
+                                        <span class="text-danger">↗ Sent</span>
+                                    }
+                                    else if (isReceiver && !isSender)
+                                    {
+                                        <span class="text-success">↙ Received</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (isSender)
+                                    {
+                                        <strong class="text-danger">
+                                            -@t.SourceCurrencyCode @t.Amount.ToString("N2")
+                                        </strong>
+                                    }
+                                    else
+                                    {
+                                        <strong class="text-success">
+                                            +@t.DestinationCurrencyCode @t.ConvertedAmount.ToString("N2")
+                                        </strong>
+                                    }
+                                </td>
+                                <td>
+                                    @switch (t.Status)
+                                    {
+                                        case KerzelPay.Models.TransferStatus.Completed:
+                                            <span class="badge bg-success">Completed</span>
+                                            break;
+                                        case KerzelPay.Models.TransferStatus.Pending:
+                                            <span class="badge bg-warning">Pending</span>
+                                            break;
+                                        case KerzelPay.Models.TransferStatus.Failed:
+                                            <span class="badge bg-danger">Failed</span>
+                                            break;
+                                        case KerzelPay.Models.TransferStatus.Cancelled:
+                                            <span class="badge bg-secondary">Cancelled</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="Receipt" asp-route-id="@t.Id"
+                                       class="btn btn-sm btn-outline-secondary">
+                                        Receipt
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

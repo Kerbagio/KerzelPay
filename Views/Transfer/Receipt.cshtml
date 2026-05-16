@@ -1,0 +1,120 @@
+﻿@model KerzelPay.Models.Transfer
+@{
+    ViewData["Title"] = "Receipt";
+    var currentUserId = ViewBag.CurrentUserId as string;
+    var isSender = Model.SourceAccount?.UserId == currentUserId;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="display-1 text-success">✓</div>
+                        <h3>@(isSender ? "Transfer sent" : "Money received")</h3>
+                        <p class="text-muted">@Model.CompletedAt?.ToString("dd MMM yyyy 'at' HH:mm")</p>
+                    </div>
+
+                    <hr />
+
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Tracking number</dt>
+                        <dd class="col-sm-7"><code>@Model.TrackingNumber</code></dd>
+
+                        <dt class="col-sm-5">Type</dt>
+                        <dd class="col-sm-7">
+                            @switch (Model.Type)
+                            {
+                                case KerzelPay.Models.TransferType.AccountToAccount:
+                                    @:Account-to-Account
+                                    break;
+                                case KerzelPay.Models.TransferType.MobileOmt:
+                                    @:Mobile (OMT)
+                                    break;
+                                case KerzelPay.Models.TransferType.TopUp:
+                                    @:Stripe Top-Up
+                                    break;
+                            }
+                        </dd>
+
+                        <dt class="col-sm-5">From</dt>
+                        <dd class="col-sm-7">
+                            @if (Model.SourceAccount != null)
+                            {
+                                <code>@Model.SourceAccount.SerialNumber</code>
+                            }
+                            else
+                            {
+                                @:External
+                            }
+                        </dd>
+
+                        <dt class="col-sm-5">To</dt>
+                        <dd class="col-sm-7">
+                            @if (Model.DestinationAccount != null)
+                            {
+                                <code>@Model.DestinationAccount.SerialNumber</code>
+                            }
+                            else if (!string.IsNullOrEmpty(Model.RecipientMobile))
+                            {
+                                @($"{Model.RecipientName} ({Model.RecipientMobile})")
+                            }
+                        </dd>
+
+                        <dt class="col-sm-5">Amount</dt>
+                        <dd class="col-sm-7">
+                            <strong>@Model.SourceCurrencyCode @Model.Amount.ToString("N2")</strong>
+                        </dd>
+
+                        @if (Model.SourceCurrencyCode != Model.DestinationCurrencyCode)
+                        {
+                            <dt class="col-sm-5">Exchange rate</dt>
+                            <dd class="col-sm-7">
+                                1 @Model.SourceCurrencyCode = @Model.ExchangeRate.ToString("N6") @Model.DestinationCurrencyCode
+                            </dd>
+
+                            <dt class="col-sm-5">Converted</dt>
+                            <dd class="col-sm-7">
+                                <strong>@Model.DestinationCurrencyCode @Model.ConvertedAmount.ToString("N2")</strong>
+                            </dd>
+                        }
+
+                        @if (Model.Commission > 0 && isSender)
+                        {
+                            <dt class="col-sm-5">Commission (1%)</dt>
+                            <dd class="col-sm-7">@Model.SourceCurrencyCode @Model.Commission.ToString("N2")</dd>
+
+                            <dt class="col-sm-5"><strong>Total debited</strong></dt>
+                            <dd class="col-sm-7">
+                                <strong>@Model.SourceCurrencyCode @((Model.Amount + Model.Commission).ToString("N2"))</strong>
+                            </dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.Note))
+                        {
+                            <dt class="col-sm-5">Note</dt>
+                            <dd class="col-sm-7">@Model.Note</dd>
+                        }
+
+                        <dt class="col-sm-5">Status</dt>
+                        <dd class="col-sm-7"><span class="badge bg-success">@Model.Status</span></dd>
+                    </dl>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">← Back to transactions</a>
+                        <button onclick="window.print()" class="btn btn-outline-primary">🖨️ Print</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style media="print">
+    .navbar, .btn {
+        display: none !important;
+    }
+</style>

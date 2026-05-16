@@ -20,6 +20,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Repository Pattern — register the generic repository
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<KerzelPay.Services.StripeService>();
+builder.Services.AddScoped<KerzelPay.Services.CurrencyService>();
+builder.Services.AddScoped<KerzelPay.Services.TransferService>();
 
 // ASP.NET Core Identity with our custom ApplicationUser + Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
