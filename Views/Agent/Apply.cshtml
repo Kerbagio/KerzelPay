@@ -12,54 +12,89 @@
         <div class="col-md-9">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h3 class="mb-3">🏪 Become a Kerzel Pay Agent</h3>
-                    <p class="text-muted mb-4">
-                        Join our partner network and earn commissions on every transaction.
-                        Your application will be reviewed by an admin.
-                    </p>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h3 class="mb-1">🏪 Become a Kerzel Pay Agent</h3>
+                            <p class="text-muted mb-0">
+                                Join our partner network and earn commissions on every transaction.
+                            </p>
+                        </div>
+                        <small class="text-muted">
+                            📅 Applied on @DateTime.UtcNow.ToString("dd MMM yyyy")
+                        </small>
+                    </div>
 
                     <form asp-action="Apply" method="post">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"
+                        <div asp-validation-summary="All" class="alert alert-danger mb-3"
                              style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
 
+                        <!-- Store name -->
                         <div class="mb-3">
-                            <label asp-for="StoreName" class="form-label"></label>
+                            <label asp-for="StoreName" class="form-label fw-bold"></label>
                             <input asp-for="StoreName" class="form-control" placeholder="e.g. Beirut Express" />
                             <span asp-validation-for="StoreName" class="text-danger"></span>
                         </div>
 
+                        <!-- Address -->
                         <div class="mb-3">
-                            <label asp-for="Address" class="form-label"></label>
+                            <label asp-for="Address" class="form-label fw-bold"></label>
                             <input asp-for="Address" class="form-control" placeholder="e.g. Hamra Main Street, Beirut" />
                             <span asp-validation-for="Address" class="text-danger"></span>
                         </div>
 
+                        <!-- Working hours (structured) -->
                         <div class="mb-3">
-                            <label asp-for="WorkingHours" class="form-label"></label>
-                            <input asp-for="WorkingHours" class="form-control" placeholder="Mon-Sat 9:00-18:00" />
-                            <span asp-validation-for="WorkingHours" class="text-danger"></span>
+                            <label class="form-label fw-bold">🕒 Working Hours</label>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label asp-for="WorkingDays" class="form-label small text-muted">Days</label>
+                                    <select asp-for="WorkingDays" class="form-select">
+                                        <option value="Mon-Fri">Mon - Fri</option>
+                                        <option value="Mon-Sat">Mon - Sat</option>
+                                        <option value="Mon-Sun">Daily</option>
+                                        <option value="Sat-Sun">Weekends only</option>
+                                        <option value="Mon-Thu">Mon - Thu</option>
+                                    </select>
+                                    <span asp-validation-for="WorkingDays" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="OpenTime" class="form-label small text-muted">Open at</label>
+                                    <input asp-for="OpenTime" type="time" class="form-control" />
+                                    <span asp-validation-for="OpenTime" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="CloseTime" class="form-label small text-muted">Close at</label>
+                                    <input asp-for="CloseTime" type="time" class="form-control" />
+                                    <span asp-validation-for="CloseTime" class="text-danger small"></span>
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- Location picker -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">📍 Pick your store location</label>
                             <p class="text-muted small mb-2">
-                                Click anywhere on the map to drop a pin at your store's location.
+                                Click anywhere on the map to drop a pin. Drag it to fine-tune the position.
                             </p>
                             <div id="pickMap" style="height: 400px; width: 100%; border: 1px solid #ddd; border-radius: 4px;"></div>
 
                             <input type="hidden" asp-for="Latitude" id="lat" />
                             <input type="hidden" asp-for="Longitude" id="lng" />
 
-                            <div class="mt-2 small">
+                            <div class="mt-2 small d-flex justify-content-between">
                                 <span id="coordsLabel" class="text-muted">No location selected yet.</span>
+                                <span id="locationStatus" class="text-danger" style="display: none;">
+                                    ⚠️ You must click on the map to select a location
+                                </span>
                             </div>
                             <span asp-validation-for="Latitude" class="text-danger"></span>
-                            <span asp-validation-for="Longitude" class="text-danger"></span>
                         </div>
 
                         <div class="d-flex justify-content-between">
                             <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Submit Application</button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                Submit Application
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -77,34 +112,58 @@
     <script>
         const pickMap = L.map('pickMap').setView([33.8938, 35.5018], 11);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(pickMap);
+        const streets = L.tileLayer(
+            'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+            { attribution: '© OpenStreetMap contributors © CARTO', subdomains: 'abcd', maxZoom: 19 }
+        );
+
+        const satellite = L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            { attribution: 'Tiles © Esri', maxZoom: 19 }
+        );
+
+        streets.addTo(pickMap);
+
+        L.control.layers(
+            { '🗺️ Streets': streets, '🛰️ Satellite': satellite },
+            null,
+            { position: 'topright', collapsed: false }
+        ).addTo(pickMap);
 
         let marker = null;
 
-        pickMap.on('click', function (e) {
-            const { lat, lng } = e.latlng;
+        function updateFields(latlng) {
+            document.getElementById('lat').value = latlng.lat.toFixed(6);
+            document.getElementById('lng').value = latlng.lng.toFixed(6);
+            document.getElementById('coordsLabel').innerHTML =
+                `📍 Selected: <code>${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}</code>`;
+            document.getElementById('coordsLabel').classList.remove('text-muted');
+            document.getElementById('coordsLabel').classList.add('text-success');
+            document.getElementById('locationStatus').style.display = 'none';
+        }
 
+        pickMap.on('click', function (e) {
             if (marker) {
                 marker.setLatLng(e.latlng);
             } else {
                 marker = L.marker(e.latlng, { draggable: true }).addTo(pickMap);
-
                 marker.on('dragend', function (event) {
-                    const pos = event.target.getLatLng();
-                    document.getElementById('lat').value = pos.lat.toFixed(6);
-                    document.getElementById('lng').value = pos.lng.toFixed(6);
-                    document.getElementById('coordsLabel').innerText =
-                        `Selected: ${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}`;
+                    updateFields(event.target.getLatLng());
                 });
             }
+            updateFields(e.latlng);
+        });
 
-            document.getElementById('lat').value = lat.toFixed(6);
-            document.getElementById('lng').value = lng.toFixed(6);
-            document.getElementById('coordsLabel').innerText =
-                `Selected: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        // Client-side guard: don't allow submit until a pin is dropped
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const lat = document.getElementById('lat').value;
+            const lng = document.getElementById('lng').value;
+
+            if (!lat || !lng || (lat === '0' && lng === '0')) {
+                e.preventDefault();
+                document.getElementById('locationStatus').style.display = 'inline';
+                document.getElementById('pickMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         });
     </script>
 }

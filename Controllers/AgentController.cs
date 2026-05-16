@@ -81,7 +81,7 @@ namespace KerzelPay.Controllers
                 Address = vm.Address.Trim(),
                 Latitude = vm.Latitude,
                 Longitude = vm.Longitude,
-                WorkingHours = vm.WorkingHours?.Trim(),
+                WorkingHours = vm.FormatWorkingHours(),
                 Status = AgentStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
