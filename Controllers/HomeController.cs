@@ -1,32 +1,29 @@
-using System.Diagnostics;
 using KerzelPay.Models;
+using KerzelPay.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KerzelPay.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly IRepository<Currency> _currencyRepo;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(IRepository<Currency> currencyRepo)
         {
-            _logger = logger;
+            _currencyRepo = currencyRepo;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            // Pull all currencies through the repository — proves DI works
+            var currencies = await _currencyRepo.GetAllAsync();
+            ViewBag.Currencies = currencies;
             return View();
         }
 
         public IActionResult Privacy()
         {
             return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

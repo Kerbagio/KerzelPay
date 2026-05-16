@@ -1,5 +1,6 @@
 using KerzelPay.Data;
 using KerzelPay.Models;
+using KerzelPay.Repositories;
 using KerzelPay.Seeders;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Repository Pattern — register the generic repository
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 // ASP.NET Core Identity with our custom ApplicationUser + Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
