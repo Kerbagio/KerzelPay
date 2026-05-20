@@ -68,6 +68,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<KerzelPay.Services.StripeService>();
 builder.Services.AddScoped<KerzelPay.Services.CurrencyService>();
 builder.Services.AddScoped<KerzelPay.Services.TransferService>();
+builder.Services.AddScoped<KerzelPay.Services.AgentCashService>();
 // HttpClient for the live currency-rates API (Frankfurter / ECB)
 builder.Services.AddHttpClient("Frankfurter", client =>
 {

@@ -40,6 +40,33 @@
         </div>
     </div>
 
+
+    <!-- Quick Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <a asp-action="CashIn" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-success">
+                    <div class="card-body text-center py-4">
+                        <h1>💵</h1>
+                        <h4 class="text-success">Cash-In</h4>
+                        <p class="text-muted mb-0">Customer deposits cash → credit their account</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6 mb-3">
+            <a asp-action="CashOut" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-primary">
+                    <div class="card-body text-center py-4">
+                        <h1>💸</h1>
+                        <h4 class="text-primary">Cash-Out (OMT Pickup)</h4>
+                        <p class="text-muted mb-0">Customer collects an OMT mobile transfer</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-header">
             <h5 class="mb-0">Recent Transactions</h5>

@@ -185,7 +185,7 @@ namespace KerzelPay.Services
                 {
                     TrackingNumber = SerialNumberGenerator.GenerateTransferTrackingNumber(),
                     Type = TransferType.MobileOmt,
-                    Status = TransferStatus.Completed,
+                    Status = TransferStatus.Pending,
                     SourceAccountId = sourceAccount.Id,
                     DestinationAccountId = null,
                     RecipientMobile = recipientMobile,
@@ -198,7 +198,7 @@ namespace KerzelPay.Services
                     DestinationCurrencyCode = sourceAccount.Currency.Code,
                     Note = note,
                     CreatedAt = DateTime.UtcNow,
-                    CompletedAt = DateTime.UtcNow
+                    CompletedAt = null,
                 };
 
                 _db.Transfers.Add(transfer);
@@ -206,9 +206,10 @@ namespace KerzelPay.Services
                 _db.Notifications.Add(new Notification
                 {
                     UserId = userId,
-                    Title = "OMT transfer sent",
+                    Title = "OMT transfer initiated",
                     Message = $"You sent {sourceAccount.Currency.Symbol}{amount:N2} to " +
-                              $"{recipientName} ({recipientMobile}). Tracking: {transfer.TrackingNumber}"
+              $"{recipientName} ({recipientMobile}). They can pick it up at any agent. " +
+              $"Tracking: {transfer.TrackingNumber}"
                 });
 
                 await _db.SaveChangesAsync();

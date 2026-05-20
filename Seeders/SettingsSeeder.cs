@@ -12,7 +12,17 @@ namespace KerzelPay.Seeders
                 db.AppSettings.Add(new AppSetting
                 {
                     Key = "CommissionPercent",
-                    Value = "1.0",   // 1% default
+                    Value = "1.0",
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+
+            if (!db.AppSettings.Any(s => s.Key == "AgentCommissionPercent"))
+            {
+                db.AppSettings.Add(new AppSetting
+                {
+                    Key = "AgentCommissionPercent",
+                    Value = "0.5",   // 0.5% default
                     UpdatedAt = DateTime.UtcNow
                 });
             }

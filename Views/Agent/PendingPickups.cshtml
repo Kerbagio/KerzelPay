@@ -1,0 +1,54 @@
+﻿@model IEnumerable<KerzelPay.Models.Transfer>
+@{
+    ViewData["Title"] = "Pending OMT Pickups";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>📋 Pending OMT Pickups (@Model.Count())</h2>
+        <a asp-action="Dashboard" class="btn btn-sm btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    <p class="text-muted">Mobile OMT transfers waiting to be picked up at any agent.</p>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-5">
+            No pending pickups at the moment.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sent</th>
+                        <th>Tracking</th>
+                        <th>Recipient</th>
+                        <th>Amount</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model)
+                    {
+                        <tr>
+                            <td><small>@t.CreatedAt.ToString("dd MMM HH:mm")</small></td>
+                            <td><code class="small">@t.TrackingNumber</code></td>
+                            <td>
+                                <strong>@t.RecipientName</strong><br />
+                                <small class="text-muted">@t.RecipientMobile</small>
+                            </td>
+                            <td><strong>@t.SourceCurrencyCode @t.Amount.ToString("N2")</strong></td>
+                            <td>
+                                <a asp-action="CashOutLookup" asp-route-tracking="@t.TrackingNumber"
+                                   class="btn btn-sm btn-success">Process →</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,91 @@
+﻿@model KerzelPay.ViewModels.CashOutViewModel
+@{
+    ViewData["Title"] = "Confirm Cash-Out";
+    var transfer = ViewBag.Transfer as KerzelPay.Models.Transfer;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow-sm border-warning">
+                <div class="card-body">
+                    <h3 class="mb-3">⚠️ Verify Recipient Identity</h3>
+
+                    <div class="alert alert-info">
+                        <strong>Found a pending OMT transfer.</strong> Verify the recipient's
+                        identity matches the details below before handing over cash.
+                    </div>
+
+                    @if (transfer != null)
+                    {
+                        <dl class="row">
+                            <dt class="col-sm-5">Tracking</dt>
+                            <dd class="col-sm-7"><code>@transfer.TrackingNumber</code></dd>
+
+                            <dt class="col-sm-5">Recipient name</dt>
+                            <dd class="col-sm-7"><strong>@transfer.RecipientName</strong></dd>
+
+                            <dt class="col-sm-5">Recipient mobile</dt>
+                            <dd class="col-sm-7">@transfer.RecipientMobile</dd>
+
+                            <dt class="col-sm-5">Amount to hand over</dt>
+                            <dd class="col-sm-7">
+                                <h4 class="text-success mb-0">
+                                    @transfer.SourceCurrencyCode @transfer.Amount.ToString("N2")
+                                </h4>
+                            </dd>
+
+                            <dt class="col-sm-5">Date initiated</dt>
+                            <dd class="col-sm-7">@transfer.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+
+                            @if (!string.IsNullOrEmpty(transfer.Note))
+                            {
+                                <dt class="col-sm-5">Note from sender</dt>
+                                <dd class="col-sm-7"><em>@transfer.Note</em></dd>
+                            }
+                        </dl>
+                    }
+
+                    <hr />
+
+                    <form asp-action="CashOut" method="post">
+                        <input type="hidden" asp-for="TrackingNumber" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"
+                             style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="RecipientIdProof" class="form-label fw-bold">
+                                Recipient ID verification
+                            </label>
+                            <input asp-for="RecipientIdProof" class="form-control"
+                                   placeholder="e.g. Lebanese ID #12345 or Passport L1234567" />
+                            <span asp-validation-for="RecipientIdProof" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Record the type and number of ID you verified (passport, national ID, etc.).
+                                This is logged for compliance.
+                            </small>
+                        </div>
+
+                        <div class="alert alert-warning small">
+                            <strong>⚠️ Before confirming:</strong> Make sure the recipient's name and ID
+                            match the details above. Once confirmed, the cash is released and cannot
+                            be reversed.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="CashOut" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                ✓ Confirm & Release Cash
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

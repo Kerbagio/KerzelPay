@@ -228,8 +228,11 @@ namespace KerzelPay.Controllers
         {
             var commission = await _db.AppSettings
                 .FirstOrDefaultAsync(s => s.Key == "CommissionPercent");
+            var agentCommission = await _db.AppSettings
+                .FirstOrDefaultAsync(s => s.Key == "AgentCommissionPercent");
 
             ViewBag.CommissionPercent = commission?.Value ?? "1.0";
+            ViewBag.AgentCommissionPercent = agentCommission?.Value ?? "0.5";
             return View();
         }
 
@@ -256,6 +259,32 @@ namespace KerzelPay.Controllers
 
             await _db.SaveChangesAsync();
             TempData["Success"] = $"Commission rate updated to {commissionPercent:F2}%.";
+            return RedirectToAction(nameof(Settings));
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateAgentCommission(decimal agentCommissionPercent)
+        {
+            if (agentCommissionPercent < 0 || agentCommissionPercent > 50)
+            {
+                TempData["Error"] = "Agent commission must be between 0% and 50%.";
+                return RedirectToAction(nameof(Settings));
+            }
+
+            var setting = await _db.AppSettings
+                .FirstOrDefaultAsync(s => s.Key == "AgentCommissionPercent");
+
+            if (setting == null)
+            {
+                setting = new AppSetting { Key = "AgentCommissionPercent" };
+                _db.AppSettings.Add(setting);
+            }
+
+            setting.Value = agentCommissionPercent.ToString("F2");
+            setting.UpdatedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = $"Agent commission rate updated to {agentCommissionPercent:F2}%.";
             return RedirectToAction(nameof(Settings));
         }
 
