@@ -106,23 +106,32 @@
 
         const markers = L.layerGroup();
 
-        agents.forEach(a => {
+                agents.forEach(a => {
+            const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${a.lat},${a.lng}`;
+
             const marker = L.marker([a.lat, a.lng], { icon: kerzelIcon })
                 .bindPopup(`
-                    <div style="min-width: 220px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                    <div style="min-width: 240px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
                         <strong style="font-size: 1.05em; color: #0d6efd;">${a.name}</strong>
                         <hr style="margin: 6px 0;"/>
                         <div style="margin-bottom: 4px;">
                             <span style="opacity: 0.7;">📍</span> ${a.address}
                         </div>
-                        <div>
+                        <div style="margin-bottom: 10px;">
                             <span style="opacity: 0.7;">🕒</span> ${a.hours}
                         </div>
+                        <a href="${directionsUrl}"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           style="display: block; padding: 8px 12px; background: #0d6efd; color: white;
+                                  text-align: center; text-decoration: none; border-radius: 6px;
+                                  font-weight: 500; font-size: 0.9em;">
+                            🧭 Get Directions
+                        </a>
                     </div>
                 `);
             markers.addLayer(marker);
         });
-
         markers.addTo(map);
 
         // Auto-fit bounds if we have pins
