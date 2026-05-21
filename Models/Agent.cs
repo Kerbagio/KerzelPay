@@ -43,5 +43,7 @@ namespace KerzelPay.Models
         public ApplicationUser User { get; set; } = null!;
 
         public ICollection<Transfer> Transfers { get; set; } = new List<Transfer>();
+
+        public bool IsResubmission { get; set; } = false;
     }
 }

@@ -71,6 +71,14 @@
         <div class="card-header">
             <h5 class="mb-0">Recent Transactions</h5>
         </div>
+
+
+        <div class="mt-4">
+            <a asp-action="Status" class="btn btn-outline-secondary">View store info</a>
+            <a asp-action="Edit" class="btn btn-outline-primary">✏️ Edit my store</a>
+        </div>
+
+
         <div class="card-body p-0">
             @if (transactions == null || !transactions.Any())
             {

@@ -291,5 +291,79 @@ namespace KerzelPay.Controllers
 
             return View(pending);
         }
+
+
+        // GET: /Agent/Edit
+        [Authorize(Roles = Roles.Agent)]
+        public async Task<IActionResult> Edit()
+        {
+            var userId = _userManager.GetUserId(User);
+            var agent = await _db.Agents.FirstOrDefaultAsync(a => a.UserId == userId);
+
+            if (agent == null || agent.Status != AgentStatus.Approved)
+            {
+                return RedirectToAction(nameof(Status));
+            }
+
+            var (days, open, close) = AgentApplicationViewModel.ParseWorkingHours(agent.WorkingHours);
+
+            var vm = new AgentApplicationViewModel
+            {
+                Id = agent.Id,
+                StoreName = agent.StoreName,
+                Address = agent.Address,
+                WorkingDays = days,
+                OpenTime = open,
+                CloseTime = close,
+                Latitude = agent.Latitude,
+                Longitude = agent.Longitude
+            };
+
+            return View(vm);
+        }
+
+        // POST: /Agent/Edit
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = Roles.Agent)]
+        public async Task<IActionResult> Edit(AgentApplicationViewModel vm)
+        {
+            if (!ModelState.IsValid) return View(vm);
+
+            var userId = _userManager.GetUserId(User);
+            var agent = await _db.Agents.Include(a => a.User)
+                .FirstOrDefaultAsync(a => a.Id == vm.Id && a.UserId == userId);
+
+            if (agent == null) return NotFound();
+
+            // Update fields
+            agent.StoreName = vm.StoreName.Trim();
+            agent.Address = vm.Address.Trim();
+            agent.WorkingHours = vm.FormatWorkingHours();
+            agent.Latitude = vm.Latitude;
+            agent.Longitude = vm.Longitude;
+
+            // Safety pattern: flip to Pending, strip the Agent role
+            agent.Status = AgentStatus.Pending;
+            agent.IsResubmission = true;
+
+            if (agent.User != null && await _userManager.IsInRoleAsync(agent.User, Roles.Agent))
+            {
+                await _userManager.RemoveFromRoleAsync(agent.User, Roles.Agent);
+            }
+
+            // Notify the agent
+            _db.Notifications.Add(new Notification
+            {
+                UserId = agent.UserId,
+                Title = "Store details updated — pending review",
+                Message = "Your store information has been updated and is awaiting admin re-approval. " +
+                          "You won't be able to process cash operations until approved."
+            });
+
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = "Your store details have been submitted for re-approval.";
+            return RedirectToAction(nameof(Status));
+        }
     }
 }

@@ -58,5 +58,32 @@ namespace KerzelPay.ViewModels
                     new[] { nameof(CloseTime) });
             }
         }
+
+        public int Id { get; set; }   // 0 for new application, > 0 for edit
+
+        public static (string Days, TimeOnly Open, TimeOnly Close) ParseWorkingHours(string? hours)
+        {
+            if (string.IsNullOrWhiteSpace(hours))
+                return ("Mon-Fri", new TimeOnly(9, 0), new TimeOnly(18, 0));
+
+            // Format: "Mon-Sat 9:00-18:00"
+            var parts = hours.Trim().Split(' ', 2);
+            var days = parts.Length > 0 ? parts[0] : "Mon-Fri";
+
+            var open = new TimeOnly(9, 0);
+            var close = new TimeOnly(18, 0);
+
+            if (parts.Length == 2)
+            {
+                var timeParts = parts[1].Split('-');
+                if (timeParts.Length == 2)
+                {
+                    TimeOnly.TryParse(timeParts[0], out open);
+                    TimeOnly.TryParse(timeParts[1], out close);
+                }
+            }
+
+            return (days, open, close);
+        }
     }
 }

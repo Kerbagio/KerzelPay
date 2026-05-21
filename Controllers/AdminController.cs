@@ -99,7 +99,7 @@ namespace KerzelPay.Controllers
                 Title = "Agent application approved 🎉",
                 Message = "You can now access the Agent Dashboard."
             });
-
+            agent.IsResubmission = false;
             await _db.SaveChangesAsync();
             TempData["Success"] = $"{agent.StoreName} approved.";
             return RedirectToAction(nameof(Agents));
@@ -118,7 +118,7 @@ namespace KerzelPay.Controllers
                 Title = "Agent application rejected",
                 Message = "Please contact support for more details."
             });
-
+            agent.IsResubmission = false;
             await _db.SaveChangesAsync();
             TempData["Success"] = $"{agent.StoreName} rejected.";
             return RedirectToAction(nameof(Agents));
