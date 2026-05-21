@@ -1,0 +1,129 @@
+﻿@model KerzelPay.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Delete User";
+    var accounts = ViewBag.Accounts as IEnumerable<KerzelPay.Models.Account>;
+    var totalBalance = (decimal)(ViewBag.TotalBalance ?? 0m);
+    var roles = ViewBag.Roles as IList<string>;
+    var hasPositive = (bool)(ViewBag.HasPositiveBalance ?? false);
+    var hasPending = (bool)(ViewBag.HasPendingTransfers ?? false);
+    var canDelete = !hasPositive && !hasPending;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-danger">
+                <div class="card-body">
+                    <h3 class="text-danger mb-3">⚠️ Delete user account</h3>
+                    <p class="lead">This action cannot be undone. Review carefully before confirming.</p>
+
+                    <hr />
+
+                    <h5>👤 User Information</h5>
+                    <dl class="row">
+                        <dt class="col-sm-3">Name</dt>
+                        <dd class="col-sm-9">@Model.FirstName @Model.LastName</dd>
+
+                        <dt class="col-sm-3">Email</dt>
+                        <dd class="col-sm-9">@Model.Email</dd>
+
+                        <dt class="col-sm-3">Member since</dt>
+                        <dd class="col-sm-9">@Model.CreatedAt.ToString("dd MMM yyyy")</dd>
+
+                        <dt class="col-sm-3">Roles</dt>
+                        <dd class="col-sm-9">
+                            @if (roles != null)
+                            {
+                                @foreach (var r in roles)
+                                {
+                                    <span class="badge bg-secondary me-1">@r</span>
+                                }
+                            }
+                        </dd>
+                    </dl>
+
+                    <hr />
+
+                    <h5>💳 Accounts (@(accounts?.Count() ?? 0))</h5>
+                    @if (accounts != null && accounts.Any())
+                    {
+                        <table class="table table-sm">
+                            <thead><tr><th>Serial</th><th>Currency</th><th>Balance</th></tr></thead>
+                            <tbody>
+                                @foreach (var a in accounts)
+                                {
+                                    <tr class="@(a.Balance > 0 ? "table-warning" : "")">
+                                        <td><code>@a.SerialNumber</code></td>
+                                        <td>@a.Currency.Code</td>
+                                        <td><strong>@a.Currency.Symbol @a.Balance.ToString("N2")</strong></td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="2" class="text-end">Total balance:</th>
+                                    <th class="@(totalBalance > 0 ? "text-danger" : "")">$@totalBalance.ToString("N2")</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No accounts.</p>
+                    }
+
+                    <hr />
+
+                    @if (hasPositive)
+                    {
+                        <div class="alert alert-danger">
+                            🛑 <strong>Cannot delete:</strong> this user has accounts with positive balance.
+                            They must transfer or cash out the funds first.
+                        </div>
+                    }
+
+                    @if (hasPending)
+                    {
+                        <div class="alert alert-danger">
+                            🛑 <strong>Cannot delete:</strong> this user has <strong>@ViewBag.PendingOmtCount pending OMT transfer(s)</strong>
+                            awaiting pickup. The recipients must collect the money first.
+                        </div>
+                    }
+
+                    @if (canDelete)
+                    {
+                        <div class="alert alert-warning">
+                            ⚠️ <strong>What will happen:</strong>
+                            <ul class="mb-0">
+                                <li>The user's identity record will be deleted (login disabled)</li>
+                                <li>Their @accounts?.Count() account(s), beneficiaries, reviews, and notifications will be removed</li>
+                                <li>Transfer history involving them stays in the system but is anonymized (other users' history is preserved)</li>
+                                <li>If they're an agent, their agent record is also removed</li>
+                            </ul>
+                        </div>
+                    }
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Users" class="btn btn-outline-secondary">← Cancel</a>
+                        @if (canDelete)
+                        {
+                            <form asp-action="DeleteUserConfirmed" asp-route-id="@Model.Id" method="post"
+                                  onsubmit="return confirm('Are you absolutely sure? This cannot be undone.')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger">
+                                    🗑️ Permanently delete this user
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-danger" disabled>🗑️ Cannot delete (blocked above)</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -488,5 +488,153 @@ namespace KerzelPay.Controllers
 
             return RedirectToAction(nameof(Users));
         }
+
+
+        // GET: /Admin/DeleteUser/{userId} — confirmation page
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Super admin can never be deleted
+            if (user.Email?.ToLower() == _superAdminEmail.ToLower())
+            {
+                TempData["Error"] = "The super admin account cannot be deleted.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            // Can't delete yourself
+            if (id == _userManager.GetUserId(User))
+            {
+                TempData["Error"] = "You cannot delete your own account.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            // Collect info for the confirmation screen
+            var accounts = await _db.Accounts
+                .Include(a => a.Currency)
+                .Where(a => a.UserId == id)
+                .ToListAsync();
+
+            var totalBalance = accounts.Sum(a => a.Balance);
+            var pendingOmtCount = await _db.Transfers
+                .CountAsync(t => t.SourceAccount != null
+                              && t.SourceAccount.UserId == id
+                              && t.Type == TransferType.MobileOmt
+                              && t.Status == TransferStatus.Pending);
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            ViewBag.Accounts = accounts;
+            ViewBag.TotalBalance = totalBalance;
+            ViewBag.PendingOmtCount = pendingOmtCount;
+            ViewBag.Roles = roles;
+            ViewBag.HasPendingTransfers = pendingOmtCount > 0;
+            ViewBag.HasPositiveBalance = accounts.Any(a => a.Balance > 0);
+
+            return View(user);
+        }
+
+        // POST: /Admin/DeleteUser/{userId}
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteUserConfirmed(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Re-check safety guards
+            if (user.Email?.ToLower() == _superAdminEmail.ToLower())
+            {
+                TempData["Error"] = "The super admin account cannot be deleted.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            if (id == _userManager.GetUserId(User))
+            {
+                TempData["Error"] = "You cannot delete your own account.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            // Refuse if they have money in any account
+            var accounts = await _db.Accounts.Where(a => a.UserId == id).ToListAsync();
+            if (accounts.Any(a => a.Balance > 0))
+            {
+                TempData["Error"] = "Cannot delete: user has accounts with positive balance. " +
+                                    "They must transfer or cash out the funds first.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            // Refuse if they have pending OMT transfers (money still in escrow)
+            var hasPending = await _db.Transfers.AnyAsync(t =>
+                t.SourceAccount != null
+                && t.SourceAccount.UserId == id
+                && t.Type == TransferType.MobileOmt
+                && t.Status == TransferStatus.Pending);
+
+            if (hasPending)
+            {
+                TempData["Error"] = "Cannot delete: user has pending OMT transfers awaiting pickup.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            // Begin transactional delete
+            using var tx = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                // 1. Unlink transfers (preserve history for OTHER users)
+                var accountIds = accounts.Select(a => a.Id).ToList();
+
+                var transfersAsSource = await _db.Transfers
+                    .Where(t => t.SourceAccountId != null && accountIds.Contains(t.SourceAccountId.Value))
+                    .ToListAsync();
+                foreach (var t in transfersAsSource) t.SourceAccountId = null;
+
+                var transfersAsDest = await _db.Transfers
+                    .Where(t => t.DestinationAccountId != null && accountIds.Contains(t.DestinationAccountId.Value))
+                    .ToListAsync();
+                foreach (var t in transfersAsDest) t.DestinationAccountId = null;
+
+                await _db.SaveChangesAsync();
+
+                // 2. Delete user's own data
+                _db.Accounts.RemoveRange(accounts);
+
+                var beneficiaries = await _db.Beneficiaries.Where(b => b.UserId == id).ToListAsync();
+                _db.Beneficiaries.RemoveRange(beneficiaries);
+
+                var reviews = await _db.Reviews.Where(r => r.UserId == id).ToListAsync();
+                _db.Reviews.RemoveRange(reviews);
+
+                var notifications = await _db.Notifications.Where(n => n.UserId == id).ToListAsync();
+                _db.Notifications.RemoveRange(notifications);
+
+                // 3. Delete agent record if exists
+                var agent = await _db.Agents.FirstOrDefaultAsync(a => a.UserId == id);
+                if (agent != null) _db.Agents.Remove(agent);
+
+                await _db.SaveChangesAsync();
+
+                // 4. Finally delete the Identity user (roles, logins, claims auto-cascade)
+                var email = user.Email ?? "user";
+                var result = await _userManager.DeleteAsync(user);
+                if (!result.Succeeded)
+                {
+                    await tx.RollbackAsync();
+                    TempData["Error"] = "Failed to delete user: " +
+                                        string.Join(", ", result.Errors.Select(e => e.Description));
+                    return RedirectToAction(nameof(Users));
+                }
+
+                await tx.CommitAsync();
+                TempData["Success"] = $"Account {email} deleted successfully.";
+                return RedirectToAction(nameof(Users));
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                TempData["Error"] = $"Deletion failed: {ex.Message}";
+                return RedirectToAction(nameof(Users));
+            }
+        }
     }
 }
