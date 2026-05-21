@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/KerzelPay.styles.css" asp-append-version="true" />
+    <script>
+        // Apply theme BEFORE the page renders (prevents flash of wrong theme)
+        (function () {
+            const saved = localStorage.getItem('kerzel-theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (systemDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-bs-theme', theme);
+        })();
+    </script>
 </head>
 <body>
     <header>
@@ -79,6 +88,14 @@
                             <a class="nav-link text-dark" asp-controller="Review" asp-action="Index">⭐ Reviews</a>
                         </li>
                     </ul>
+
+                    <button id="themeToggle" type="button"
+                            class="btn btn-link nav-link text-dark"
+                            title="Toggle dark mode"
+                            style="font-size: 1.2rem; padding: 0.5rem 0.75rem;">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+
                     <partial name="_LoginPartial" />
                 </div>
             </div>
@@ -99,6 +116,32 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        (function () {
+            const toggle = document.getElementById('themeToggle');
+            const icon = document.getElementById('themeIcon');
+
+            function setIcon(theme) {
+                icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+                toggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+            }
+
+            // Set initial icon based on current theme
+            setIcon(document.documentElement.getAttribute('data-bs-theme'));
+
+            // Toggle on click
+            toggle.addEventListener('click', function () {
+                const current = document.documentElement.getAttribute('data-bs-theme');
+                const next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-bs-theme', next);
+                localStorage.setItem('kerzel-theme', next);
+                setIcon(next);
+            });
+        })();
+    </script>
+
+
     <partial name="_ChatWidget" />
 </body>
 </html>

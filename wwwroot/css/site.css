@@ -29,3 +29,91 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* === Dark Mode Overrides === */
+
+/* Navbar: flip white background when dark */
+[data-bs-theme="dark"] .navbar.bg-white {
+    background-color: #1a1a1a !important;
+    border-bottom: 1px solid #333 !important;
+}
+
+[data-bs-theme="dark"] .navbar .nav-link.text-dark {
+    color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] .navbar .navbar-brand {
+    color: #e9ecef !important;
+}
+
+/* "bg-light" panels (used in calculator breakdown) */
+[data-bs-theme="dark"] .bg-light {
+    background-color: #2a2a2a !important;
+    color: #e9ecef !important;
+}
+
+/* Card borders less harsh in dark mode */
+[data-bs-theme="dark"] .card {
+    border-color: #333;
+}
+
+/* Code/tracking-number tags */
+[data-bs-theme="dark"] code {
+    color: #ff9eb1;
+    background-color: rgba(255, 158, 177, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Footer */
+[data-bs-theme="dark"] footer.text-muted {
+    color: #999 !important;
+}
+
+[data-bs-theme="dark"] footer.border-top {
+    border-top-color: #333 !important;
+}
+
+/* Chat widget bot messages — keep readable */
+[data-bs-theme="dark"] .chat-msg.bot .chat-bubble-text {
+    background: #2a2a2a !important;
+    color: #e9ecef !important;
+    border-color: #444 !important;
+}
+
+[data-bs-theme="dark"] .chat-messages {
+    background: #1a1a1a !important;
+}
+
+[data-bs-theme="dark"] .chat-input-area {
+    background: #1a1a1a !important;
+    border-top-color: #333 !important;
+}
+
+    [data-bs-theme="dark"] .chat-input-area input {
+        background: #2a2a2a !important;
+        color: #e9ecef !important;
+        border-color: #444 !important;
+    }
+
+/* Calculator result box */
+[data-bs-theme="dark"] #calcResult {
+    background-color: #2a2a2a !important;
+    color: #e9ecef !important;
+}
+
+/* Tables — ensure borders are visible */
+[data-bs-theme="dark"] .table-light {
+    background-color: #2a2a2a !important;
+    color: #e9ecef !important;
+}
+
+/* Smooth color transitions when toggling */
+body, .navbar, .card, .bg-light, .table {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Toggle button: white in dark mode */
+[data-bs-theme="dark"] #themeToggle {
+    color: #ffc107 !important;
+}
