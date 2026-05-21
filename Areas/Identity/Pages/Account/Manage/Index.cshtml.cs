@@ -52,13 +52,19 @@ namespace KerzelPay.Areas.Identity.Pages.Account.Manage
         /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
+            [Required]
+            [Display(Name = "First name")]
+            [StringLength(50)]
+            public string FirstName { get; set; } = string.Empty;
+
+            [Required]
+            [Display(Name = "Last name")]
+            [StringLength(50)]
+            public string LastName { get; set; } = string.Empty;
+
             [Phone]
             [Display(Name = "Phone number")]
-            public string PhoneNumber { get; set; }
+            public string? PhoneNumber { get; set; }
         }
 
         private async Task LoadAsync(ApplicationUser user)
@@ -70,9 +76,19 @@ namespace KerzelPay.Areas.Identity.Pages.Account.Manage
 
             Input = new InputModel
             {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 PhoneNumber = phoneNumber
             };
+            // Update FirstName / LastName
+            if (user.FirstName != Input.FirstName || user.LastName != Input.LastName)
+            {
+                user.FirstName = Input.FirstName?.Trim() ?? "";
+                user.LastName = Input.LastName?.Trim() ?? "";
+                await _userManager.UpdateAsync(user);
+            }
         }
+
 
         public async Task<IActionResult> OnGetAsync()
         {
