@@ -25,5 +25,10 @@ namespace KerzelPay.Controllers
         {
             return View();
         }
+
+        public IActionResult Calculator()
+        {
+            return View();
+        }
     }
 }

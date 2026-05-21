@@ -1,0 +1,213 @@
+﻿<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow border-0" style="border-radius: 16px;">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <h2 class="mb-2">💱 Calculate Your Transfer</h2>
+                        <p class="text-muted mb-0">
+                            See the real cost before you sign up. Live exchange rates, transparent fees.
+                        </p>
+                    </div>
+
+                    <!-- Amount + From Currency -->
+                    <div class="row g-2 mb-3 align-items-end">
+                        <div class="col-md-8">
+                            <label class="form-label small text-muted">YOU SEND</label>
+                            <input id="calcAmount" type="number" class="form-control form-control-lg"
+                                   value="100" min="1" step="0.01" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">FROM</label>
+                            <select id="calcFrom" class="form-select form-select-lg">
+                                <!-- Filled dynamically -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Swap button -->
+                    <div class="text-center my-2">
+                        <button id="calcSwap" type="button" class="btn btn-sm btn-outline-secondary rounded-circle"
+                                style="width: 40px; height: 40px;" title="Swap currencies">
+                            ⇅
+                        </button>
+                    </div>
+
+                    <!-- Result + To Currency -->
+                    <div class="row g-2 mb-4 align-items-end">
+                        <div class="col-md-8">
+                            <label class="form-label small text-muted">RECIPIENT GETS</label>
+                            <div class="form-control form-control-lg bg-light"
+                                 id="calcResult" style="font-size: 1.5rem; font-weight: 600;">
+                                —
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">TO</label>
+                            <select id="calcTo" class="form-select form-select-lg">
+                                <!-- Filled dynamically -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Breakdown -->
+                    <div class="bg-light rounded p-3 mb-4" id="calcBreakdown" style="font-size: 0.95em;">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Exchange rate</span>
+                            <span id="calcRate" class="fw-bold">—</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Commission <span id="calcCommissionPct" class="badge bg-secondary"></span></span>
+                            <span id="calcCommission" class="text-danger fw-bold">—</span>
+                        </div>
+                        <hr class="my-2" />
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Total to debit</span>
+                            <span id="calcTotal" class="fw-bold text-primary" style="font-size: 1.1em;">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Loading + error states -->
+                    <div id="calcLoading" class="text-center text-muted small" style="display: none;">
+                        Calculating…
+                    </div>
+                    <div id="calcError" class="alert alert-warning small" style="display: none;"></div>
+
+                    <!-- CTA -->
+                    <div class="text-center mt-4">
+                        @if (!User.Identity?.IsAuthenticated ?? true)
+                        {
+                            <a asp-area="Identity" asp-page="/Account/Register"
+                               class="btn btn-primary btn-lg px-5">
+                                Sign up to send →
+                            </a>
+                            <p class="text-muted small mt-2 mb-0">
+                                It takes less than 2 minutes. No credit card needed to register.
+                            </p>
+                        }
+                        else
+                        {
+                            <a asp-controller="Transfer" asp-action="Create"
+                               class="btn btn-primary btn-lg px-5">
+                                Send this transfer →
+                            </a>
+                        }
+                    </div>
+
+                    <p class="text-muted small text-center mt-3 mb-0">
+                        💡 Rates from the European Central Bank · Commission set by Kerzel Pay
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const amountInput = document.getElementById('calcAmount');
+        const fromSelect = document.getElementById('calcFrom');
+        const toSelect = document.getElementById('calcTo');
+        const result = document.getElementById('calcResult');
+        const rateEl = document.getElementById('calcRate');
+        const commissionEl = document.getElementById('calcCommission');
+        const commissionPctEl = document.getElementById('calcCommissionPct');
+        const totalEl = document.getElementById('calcTotal');
+        const loading = document.getElementById('calcLoading');
+        const errorEl = document.getElementById('calcError');
+        const swapBtn = document.getElementById('calcSwap');
+
+        let currencies = [];
+        let debounceTimer = null;
+
+        // Load currencies from the API
+        async function loadCurrencies() {
+            try {
+                const res = await fetch('/api/currencies');
+                currencies = await res.json();
+
+                // Populate dropdowns
+                currencies.forEach(c => {
+                    const opt1 = new Option(`${c.symbol} ${c.code}`, c.code);
+                    const opt2 = new Option(`${c.symbol} ${c.code}`, c.code);
+                    fromSelect.add(opt1);
+                    toSelect.add(opt2);
+                });
+
+                // Sensible defaults
+                fromSelect.value = 'USD';
+                toSelect.value = 'LBP';
+
+                calculate();
+            } catch (err) {
+                errorEl.textContent = 'Could not load currencies. Please refresh.';
+                errorEl.style.display = 'block';
+            }
+        }
+
+        async function calculate() {
+            const amount = parseFloat(amountInput.value);
+            const from = fromSelect.value;
+            const to = toSelect.value;
+
+            if (!amount || amount <= 0 || !from || !to) {
+                result.textContent = '—';
+                rateEl.textContent = '—';
+                commissionEl.textContent = '—';
+                totalEl.textContent = '—';
+                return;
+            }
+
+            loading.style.display = 'block';
+            errorEl.style.display = 'none';
+
+            try {
+                const url = `/api/currencies/convert?from=${from}&to=${to}&amount=${amount}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (!res.ok) {
+                    errorEl.textContent = data.error || 'Calculation failed.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                // Format with thousands separators
+                const fmt = n => n.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+                result.textContent = `${data.toCurrency} ${fmt(data.convertedAmount)}`;
+                rateEl.textContent = `1 ${data.fromCurrency} = ${data.exchangeRate.toFixed(6)} ${data.toCurrency}`;
+                commissionEl.textContent = `${data.fromCurrency} ${fmt(data.commission)}`;
+                commissionPctEl.textContent = `${data.commissionPercent}%`;
+                totalEl.textContent = `${data.fromCurrency} ${fmt(data.totalDebit)}`;
+            } catch (err) {
+                errorEl.textContent = 'Network error. Please try again.';
+                errorEl.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Debounce typing — wait 400ms after the user stops typing
+        function debounceCalculate() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(calculate, 400);
+        }
+
+        amountInput.addEventListener('input', debounceCalculate);
+        fromSelect.addEventListener('change', calculate);
+        toSelect.addEventListener('change', calculate);
+
+        swapBtn.addEventListener('click', () => {
+            const temp = fromSelect.value;
+            fromSelect.value = toSelect.value;
+            toSelect.value = temp;
+            calculate();
+        });
+
+        loadCurrencies();
+    })();
+</script>
