@@ -89,6 +89,7 @@ builder.Services.AddHttpClient("Gemini", client =>
 
 builder.Services.AddScoped<KerzelPay.Services.RateRefreshService>();
 builder.Services.AddScoped<KerzelPay.Services.IEmailService, KerzelPay.Services.SmtpEmailService>();
+builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, KerzelPay.Services.IdentityEmailSender>();
 
 builder.Services.AddScoped<KerzelPay.Services.JwtService>();
 
