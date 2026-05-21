@@ -1,0 +1,259 @@
+﻿<!-- Floating chat bubble -->
+<div id="kerzelChatWidget">
+    <button id="chatToggle" class="chat-bubble" title="Need help?">
+        💬
+    </button>
+
+    <div id="chatWindow" class="chat-window" style="display: none;">
+        <div class="chat-header">
+            <div>
+                <strong>💬 Kerzel Assistant</strong>
+                <small class="d-block">Powered by AI · Always here to help</small>
+            </div>
+            <button id="chatClose" class="chat-close">×</button>
+        </div>
+
+        <div id="chatMessages" class="chat-messages">
+            <div class="chat-msg bot">
+                <div class="chat-bubble-text">
+                    👋 Hi! I'm the Kerzel Pay assistant. Ask me anything about
+                    sending money, accounts, agents, or our fees.
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <input id="chatInput" type="text" placeholder="Type your question..."
+                   maxlength="500" />
+            <button id="chatSend">Send</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    #kerzelChatWidget {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 9999;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .chat-bubble {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        transition: transform 0.2s;
+    }
+
+        .chat-bubble:hover {
+            transform: scale(1.08);
+        }
+
+    .chat-window {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 360px;
+        height: 500px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 14px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 28px;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        background: #f8f9fa;
+    }
+
+    .chat-msg {
+        margin-bottom: 12px;
+        display: flex;
+    }
+
+        .chat-msg.user {
+            justify-content: flex-end;
+        }
+
+        .chat-msg.bot {
+            justify-content: flex-start;
+        }
+
+    .chat-bubble-text {
+        max-width: 80%;
+        padding: 10px 14px;
+        border-radius: 16px;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    .chat-msg.user .chat-bubble-text {
+        background: #0d6efd;
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+
+    .chat-msg.bot .chat-bubble-text {
+        background: white;
+        color: #333;
+        border: 1px solid #e9ecef;
+        border-bottom-left-radius: 4px;
+    }
+
+    .chat-msg.typing .chat-bubble-text {
+        font-style: italic;
+        color: #888;
+    }
+
+    .chat-input-area {
+        padding: 12px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        gap: 8px;
+        background: white;
+    }
+
+        .chat-input-area input {
+            flex: 1;
+            border: 1px solid #ced4da;
+            border-radius: 20px;
+            padding: 8px 14px;
+            outline: none;
+        }
+
+            .chat-input-area input:focus {
+                border-color: #667eea;
+            }
+
+        .chat-input-area button {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+            .chat-input-area button:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+
+    @@media (max-width: 480px) {
+        .chat-window {
+            width: 100vw;
+            height: 100vh;
+            bottom: 0;
+            right: -24px;
+            border-radius: 0;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        const toggle = document.getElementById('chatToggle');
+        const window_ = document.getElementById('chatWindow');
+        const close = document.getElementById('chatClose');
+        const input = document.getElementById('chatInput');
+        const send = document.getElementById('chatSend');
+        const messages = document.getElementById('chatMessages');
+
+        let history = []; // conversation memory
+
+        toggle.addEventListener('click', () => {
+            window_.style.display = 'flex';
+            toggle.style.display = 'none';
+            input.focus();
+        });
+
+        close.addEventListener('click', () => {
+            window_.style.display = 'none';
+            toggle.style.display = 'block';
+        });
+
+        function appendMessage(text, isUser, isTyping = false) {
+            const div = document.createElement('div');
+            div.className = 'chat-msg ' + (isUser ? 'user' : 'bot') + (isTyping ? ' typing' : '');
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble-text';
+            bubble.textContent = text;
+            div.appendChild(bubble);
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+            return div;
+        }
+
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            appendMessage(text, true);
+            history.push({ text: text, isUser: true });
+            input.value = '';
+            send.disabled = true;
+
+            const typing = appendMessage('Typing…', false, true);
+
+            try {
+                const res = await fetch('/api/chat/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, history: history.slice(0, -1) })
+                });
+
+                typing.remove();
+
+                if (!res.ok) {
+                    appendMessage('Sorry, I had trouble. Please try again.', false);
+                } else {
+                    const data = await res.json();
+                    appendMessage(data.reply, false);
+                    history.push({ text: data.reply, isUser: false });
+                }
+            } catch (err) {
+                typing.remove();
+                appendMessage('Network error. Please check your connection.', false);
+            } finally {
+                send.disabled = false;
+                input.focus();
+            }
+        }
+
+        send.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', e => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    })();
+</script>

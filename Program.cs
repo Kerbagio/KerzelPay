@@ -69,12 +69,24 @@ builder.Services.AddScoped<KerzelPay.Services.StripeService>();
 builder.Services.AddScoped<KerzelPay.Services.CurrencyService>();
 builder.Services.AddScoped<KerzelPay.Services.TransferService>();
 builder.Services.AddScoped<KerzelPay.Services.AgentCashService>();
+builder.Services.AddScoped<KerzelPay.Services.ChatbotService>();
+builder.Services.AddScoped<KerzelPay.Services.UserContextBuilder>();
 // HttpClient for the live currency-rates API (Frankfurter / ECB)
 builder.Services.AddHttpClient("Frankfurter", client =>
 {
     client.BaseAddress = new Uri("https://api.frankfurter.app/");
     client.Timeout = TimeSpan.FromSeconds(10);
 });
+
+
+builder.Services.AddHttpClient("Gemini", client =>
+{
+    client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
+
+
 builder.Services.AddScoped<KerzelPay.Services.RateRefreshService>();
 builder.Services.AddScoped<KerzelPay.Services.IEmailService, KerzelPay.Services.SmtpEmailService>();
 
