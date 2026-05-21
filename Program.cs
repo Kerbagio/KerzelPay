@@ -63,7 +63,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Repository Pattern — register the generic repository
+// Repository Pattern ï¿½ register the generic repository
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<KerzelPay.Services.StripeService>();
 builder.Services.AddScoped<KerzelPay.Services.CurrencyService>();
@@ -109,8 +109,14 @@ builder.Services.AddAuthentication()
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
+    })
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+        options.SaveTokens = true;
     });
-// Stripe configuration — keys come from User Secrets (safe, never in Git)
+// Stripe configuration ï¿½ keys come from User Secrets (safe, never in Git)
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 var app = builder.Build();
 
