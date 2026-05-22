@@ -18,42 +18,38 @@
 
     <!-- Stat cards -->
     <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
-                <div class="card-body">
-                    <small>Total Users</small>
-                    <h2 class="mb-0">@ViewBag.TotalUsers</h2>
-                </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="kp-stat">
+                <div class="kp-stat-icon" style="background: linear-gradient(135deg, #0066FF, #4D8FFF);">👥</div>
+                <div class="kp-stat-label">Total Users</div>
+                <div class="kp-stat-value">@ViewBag.TotalUsers</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #11998e, #38ef7d); color: white;">
-                <div class="card-body">
-                    <small>Active Agents</small>
-                    <h2 class="mb-0">
-                        @ViewBag.TotalAgents
-                        @if ((int)ViewBag.PendingAgents > 0)
-                        {
-                            <small class="ms-1" style="font-size:0.5em;">(@ViewBag.PendingAgents pending)</small>
-                        }
-                    </h2>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="kp-stat">
+                <div class="kp-stat-icon" style="background: linear-gradient(135deg, #00C896, #00D4AA);">🏪</div>
+                <div class="kp-stat-label">
+                    Active Agents
+                    @if ((int)ViewBag.PendingAgents > 0)
+                    {
+                        <span class="badge bg-warning ms-1">@ViewBag.PendingAgents pending</span>
+                    }
                 </div>
+                <div class="kp-stat-value">@ViewBag.TotalAgents</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">
-                <div class="card-body">
-                    <small>Total Transfers</small>
-                    <h2 class="mb-0">@ViewBag.TotalTransfers</h2>
-                </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="kp-stat">
+                <div class="kp-stat-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">💸</div>
+                <div class="kp-stat-label">Total Transfers</div>
+                <div class="kp-stat-value">@ViewBag.TotalTransfers</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #ffecd2, #fcb69f); color: #333;">
-                <div class="card-body">
-                    <small>Commission Earned</small>
-                    <h2 class="mb-0">$@((decimal)ViewBag.TotalCommission)</h2>
-                </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="kp-stat">
+                <div class="kp-stat-icon" style="background: linear-gradient(135deg, #FFB020, #FF8C42);">💰</div>
+                <div class="kp-stat-label">Commission Earned</div>
+                <div class="kp-stat-value">$@((decimal)ViewBag.TotalCommission)</div>
             </div>
         </div>
     </div>

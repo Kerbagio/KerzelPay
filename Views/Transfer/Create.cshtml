@@ -1,121 +1,148 @@
 ﻿@model KerzelPay.ViewModels.TransferViewModel
 @{
     ViewData["Title"] = "Send Money";
+    var accounts = ViewBag.Accounts as IEnumerable<KerzelPay.Models.Account> ?? Enumerable.Empty<KerzelPay.Models.Account>();
+    var beneficiaries = ViewBag.Beneficiaries as IEnumerable<KerzelPay.Models.Beneficiary> ?? Enumerable.Empty<KerzelPay.Models.Beneficiary>();
 }
 
-<div class="container mt-4">
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h3 class="mb-4">💸 Send Money</h3>
-
-                    <form asp-action="Create" method="post">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"
-                             style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
-
-                        <!-- Source account -->
-                        <div class="mb-4">
-                            <label asp-for="SourceAccountId" class="form-label fw-bold"></label>
-                            <select asp-for="SourceAccountId" asp-items="ViewBag.Accounts" class="form-select">
-                                <option value="">-- Choose account --</option>
-                            </select>
-                            <span asp-validation-for="SourceAccountId" class="text-danger"></span>
-                        </div>
-
-                        <!-- Transfer mode tabs -->
-                        <label class="form-label fw-bold">Send to</label>
-                        <ul class="nav nav-pills mb-3" role="tablist">
-                            <li class="nav-item">
-                                <button type="button" class="nav-link active" data-bs-toggle="pill"
-                                        data-bs-target="#mode-beneficiary"
-                                        onclick="document.getElementById('Mode').value='1'">
-                                    👥 Beneficiary
-                                </button>
-                            </li>
-                            <li class="nav-item">
-                                <button type="button" class="nav-link" data-bs-toggle="pill"
-                                        data-bs-target="#mode-account"
-                                        onclick="document.getElementById('Mode').value='2'">
-                                    🔢 Account #
-                                </button>
-                            </li>
-                            <li class="nav-item">
-                                <button type="button" class="nav-link" data-bs-toggle="pill"
-                                        data-bs-target="#mode-mobile"
-                                        onclick="document.getElementById('Mode').value='3'">
-                                    📱 Mobile (OMT)
-                                </button>
-                            </li>
-                        </ul>
-
-                        <input type="hidden" asp-for="Mode" id="Mode" value="1" />
-
-                        <div class="tab-content mb-3">
-                            <!-- Beneficiary mode -->
-                            <div class="tab-pane fade show active" id="mode-beneficiary">
-                                <select asp-for="BeneficiaryId" asp-items="ViewBag.Beneficiaries" class="form-select">
-                                    <option value="">-- Pick a beneficiary --</option>
-                                </select>
-                                <span asp-validation-for="BeneficiaryId" class="text-danger"></span>
-                                <small class="form-text text-muted">
-                                    Don't have a beneficiary yet?
-                                    <a asp-controller="Beneficiary" asp-action="Create">Add one</a>.
-                                </small>
-                            </div>
-
-                            <!-- Direct account mode -->
-                            <div class="tab-pane fade" id="mode-account">
-                                <input asp-for="DestinationSerial" class="form-control"
-                                       placeholder="KP-2026-XXXXXX" style="text-transform: uppercase;" />
-                                <span asp-validation-for="DestinationSerial" class="text-danger"></span>
-                            </div>
-
-                            <!-- Direct mobile mode -->
-                            <div class="tab-pane fade" id="mode-mobile">
-                                <div class="mb-2">
-                                    <input asp-for="RecipientName" class="form-control" placeholder="Recipient name" />
-                                    <span asp-validation-for="RecipientName" class="text-danger"></span>
-                                </div>
-                                <div>
-                                    <input asp-for="RecipientMobile" class="form-control" placeholder="+961 71 234 567" />
-                                    <span asp-validation-for="RecipientMobile" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Amount -->
-                        <div class="mb-3">
-                            <label asp-for="Amount" class="form-label fw-bold"></label>
-                            <input asp-for="Amount" type="number" step="0.01" min="0.01"
-                                   class="form-control form-control-lg" placeholder="100.00" />
-                            <span asp-validation-for="Amount" class="text-danger"></span>
-                            <small class="form-text text-muted">
-                                💡 A 1% commission is added on top of the amount.
-                            </small>
-                        </div>
-
-                        <!-- Note -->
-                        <div class="mb-4">
-                            <label asp-for="Note" class="form-label">Note (optional)</label>
-                            <textarea asp-for="Note" class="form-control" rows="2"
-                                      placeholder="e.g. Rent for May"></textarea>
-                            <span asp-validation-for="Note" class="text-danger"></span>
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-success btn-lg">
-                                Send →
-                            </button>
-                        </div>
-                    </form>
-                </div>
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <span class="kp-eyebrow">Quick &amp; safe</span>
+                <h2 class="mb-1">Send Money</h2>
+                <p class="text-muted mb-0">Transfer to any Kerzel Pay account or to a mobile number for cash pickup.</p>
             </div>
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"
+                 style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+
+            <form asp-action="Create" method="post" id="transferForm">
+                @Html.AntiForgeryToken()
+
+                <div class="kp-step-card">
+                    <div class="kp-step-header">
+                        <span class="kp-step-num">1</span>
+                        <h5>From your account</h5>
+                    </div>
+                    <div class="kp-step-body">
+                        <select asp-for="SourceAccountId" class="form-select form-select-lg"
+                                asp-items="@(new SelectList(accounts, "Id", "SerialNumber"))">
+                            <option value="">— Pick an account —</option>
+                        </select>
+                        <span asp-validation-for="SourceAccountId" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="kp-step-card">
+                    <div class="kp-step-header">
+                        <span class="kp-step-num">2</span>
+                        <h5>Who's it going to?</h5>
+                    </div>
+                    <div class="kp-step-body">
+                        <div class="kp-mode-tabs">
+                            <input type="radio" asp-for="Mode" value="Beneficiary" id="modeBen" />
+                            <label for="modeBen" class="kp-mode-tab">
+                                <span>👥</span><strong>Saved beneficiary</strong>
+                            </label>
+
+                            <input type="radio" asp-for="Mode" value="DirectAccount" id="modeAcc" />
+                            <label for="modeAcc" class="kp-mode-tab">
+                                <span>💳</span><strong>Account number</strong>
+                            </label>
+
+                            <input type="radio" asp-for="Mode" value="DirectMobile" id="modeMob" />
+                            <label for="modeMob" class="kp-mode-tab">
+                                <span>📱</span><strong>Mobile (OMT)</strong>
+                            </label>
+                        </div>
+
+                        @* Beneficiary picker *@
+                        <div class="kp-mode-panel" data-mode="Beneficiary">
+                            @if (!beneficiaries.Any())
+                            {
+                                <p class="text-muted small mb-2">
+                                    You have no saved beneficiaries.
+                                    <a asp-controller="Beneficiary" asp-action="Create">Add one →</a>
+                                </p>
+                            }
+                            else
+                            {
+                                <select asp-for="BeneficiaryId" class="form-select"
+                                        asp-items="@(new SelectList(beneficiaries, "Id", "Nickname"))">
+                                    <option value="">— Choose beneficiary —</option>
+                                </select>
+                            }
+                        </div>
+
+                        @* Direct account *@
+                        <div class="kp-mode-panel" data-mode="DirectAccount">
+                            <input asp-for="DestinationSerial" class="form-control"
+                                   placeholder="KP-2026-XXXXXX" style="text-transform: uppercase;" />
+                            <span asp-validation-for="DestinationSerial" class="text-danger small"></span>
+                        </div>
+
+                        @* Direct mobile *@
+                        <div class="kp-mode-panel" data-mode="DirectMobile">
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <input asp-for="RecipientName" class="form-control" placeholder="Recipient name" />
+                                    <span asp-validation-for="RecipientName" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <input asp-for="RecipientMobile" class="form-control" placeholder="+961 71 234 567" />
+                                    <span asp-validation-for="RecipientMobile" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <p class="small text-muted mt-2 mb-0">
+                                💡 Recipient picks up cash at any approved Kerzel Pay agent.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kp-step-card">
+                    <div class="kp-step-header">
+                        <span class="kp-step-num">3</span>
+                        <h5>How much?</h5>
+                    </div>
+                    <div class="kp-step-body">
+                        <div class="row g-2">
+                            <div class="col-md-8">
+                                <input asp-for="Amount" type="number" step="0.01" class="form-control form-control-lg"
+                                       placeholder="100.00" />
+                                <span asp-validation-for="Amount" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <textarea asp-for="Note" class="form-control" rows="1" placeholder="Note (optional)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-controller="Account" asp-action="Index" class="btn btn-outline-secondary btn-lg">← Cancel</a>
+                    <button type="submit" class="btn btn-primary btn-lg">Send transfer →</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const radios = document.querySelectorAll('input[name="Mode"]');
+            const panels = document.querySelectorAll('.kp-mode-panel');
+
+            function update() {
+                const checked = document.querySelector('input[name="Mode"]:checked');
+                const value = checked ? checked.value : 'Beneficiary';
+                panels.forEach(p => p.style.display = p.dataset.mode === value ? 'block' : 'none');
+            }
+            radios.forEach(r => r.addEventListener('change', update));
+            update();
+        })();
+    </script>
 }

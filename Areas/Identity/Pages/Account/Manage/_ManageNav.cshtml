@@ -1,15 +1,40 @@
-﻿@inject SignInManager<ApplicationUser> SignInManager
+﻿@inject SignInManager<KerzelPay.Models.ApplicationUser> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }
-<ul class="nav nav-pills flex-column">
-    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password</a></li>
+
+<ul class="kp-settings-list">
+    <li>
+        <a class="kp-settings-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">
+            <span>👤</span> Profile
+        </a>
+    </li>
+    <li>
+        <a class="kp-settings-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">
+            <span>✉️</span> Email
+        </a>
+    </li>
+    <li>
+        <a class="kp-settings-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">
+            <span>🔑</span> Password
+        </a>
+    </li>
     @if (hasExternalLogins)
     {
-        <li id="external-logins" class="nav-item"><a id="external-login" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">External logins</a></li>
+        <li>
+            <a class="kp-settings-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" id="external-login" asp-page="./ExternalLogins">
+                <span>🔗</span> External logins
+            </a>
+        </li>
     }
-    <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
+    <li>
+        <a class="kp-settings-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">
+            <span>🛡️</span> Two-factor auth
+        </a>
+    </li>
+    <li>
+        <a class="kp-settings-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">
+            <span>📦</span> Personal data
+        </a>
+    </li>
 </ul>

@@ -995,3 +995,434 @@ html {
         display: none;
     }
 }
+
+
+/* ============================================
+   WALLET CARDS (My Accounts)
+   ============================================ */
+.kp-wallet {
+    aspect-ratio: 1.6;
+    border-radius: var(--kp-radius-lg);
+    padding: 1.5rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+    transition: var(--kp-transition);
+}
+
+    .kp-wallet:hover {
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: 0 30px 60px rgba(15, 23, 42, 0.22);
+    }
+
+.kp-wallet-pattern {
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.kp-wallet-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.kp-wallet-chip {
+    color: #FFB020;
+    font-size: 1.5rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.kp-wallet-currency {
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.3rem 0.7rem;
+    border-radius: 100px;
+    backdrop-filter: blur(10px);
+}
+
+.kp-wallet-serial {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+}
+
+.kp-wallet-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: relative;
+    z-index: 1;
+}
+
+.kp-wallet-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    opacity: 0.7;
+    font-weight: 600;
+}
+
+.kp-wallet-amount {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-top: 0.2rem;
+}
+
+.kp-wallet-logo {
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: 0.1em;
+    opacity: 0.85;
+}
+
+.kp-wallet-actions {
+    position: absolute;
+    bottom: 1rem;
+    right: 1.25rem;
+    display: flex;
+    gap: 0.4rem;
+    z-index: 2;
+}
+
+.kp-wallet-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: var(--kp-transition);
+    cursor: pointer;
+}
+
+    .kp-wallet-action:hover {
+        background: rgba(255, 255, 255, 0.35);
+        transform: scale(1.1);
+        color: white;
+    }
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.kp-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--kp-surface);
+    border: 2px dashed var(--kp-border);
+    border-radius: var(--kp-radius-md);
+}
+
+.kp-empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.kp-empty-state h4 {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.kp-empty-state p {
+    color: var(--kp-text-muted);
+    margin-bottom: 1.5rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ============================================
+   TRANSFER STEP CARDS
+   ============================================ */
+.kp-step-card {
+    background: var(--kp-surface);
+    border: 1px solid var(--kp-border);
+    border-radius: var(--kp-radius-md);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: var(--kp-transition);
+}
+
+    .kp-step-card:focus-within {
+        border-color: var(--kp-primary);
+        box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.08);
+    }
+
+.kp-step-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.kp-step-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--kp-primary), var(--kp-accent));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.kp-step-header h5 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.kp-mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+    .kp-mode-tabs input {
+        display: none;
+    }
+
+.kp-mode-tab {
+    border: 2px solid var(--kp-border);
+    border-radius: var(--kp-radius);
+    padding: 0.85rem;
+    cursor: pointer;
+    text-align: center;
+    transition: var(--kp-transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+    .kp-mode-tab span {
+        font-size: 1.5rem;
+    }
+
+    .kp-mode-tab strong {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--kp-text-muted);
+    }
+
+.kp-mode-tabs input:checked + .kp-mode-tab {
+    border-color: var(--kp-primary);
+    background: rgba(0, 102, 255, 0.05);
+}
+
+    .kp-mode-tabs input:checked + .kp-mode-tab strong {
+        color: var(--kp-primary);
+    }
+
+.kp-mode-panel {
+    display: none;
+}
+
+/* ============================================
+   ACCOUNT SETTINGS (Manage)
+   ============================================ */
+.kp-settings-nav {
+    background: var(--kp-surface);
+    border: 1px solid var(--kp-border);
+    border-radius: var(--kp-radius-md);
+    padding: 0.5rem;
+    position: sticky;
+    top: 1rem;
+}
+
+.kp-settings-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.kp-settings-link {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--kp-radius-sm);
+    color: var(--kp-text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.93rem;
+    transition: var(--kp-transition);
+    margin-bottom: 0.15rem;
+}
+
+    .kp-settings-link span {
+        font-size: 1.1rem;
+    }
+
+    .kp-settings-link:hover {
+        background: var(--kp-surface-2);
+        color: var(--kp-text);
+    }
+
+    .kp-settings-link.active {
+        background: rgba(0, 102, 255, 0.1);
+        color: var(--kp-primary);
+        font-weight: 600;
+    }
+
+.kp-settings-content {
+    background: var(--kp-surface);
+    border: 1px solid var(--kp-border);
+    border-radius: var(--kp-radius-md);
+    padding: 2rem;
+    box-shadow: var(--kp-shadow);
+}
+
+    .kp-settings-content h3,
+    .kp-settings-content h4 {
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        font-size: 1.4rem;
+    }
+
+    .kp-settings-content .form-floating {
+        margin-bottom: 1rem;
+    }
+
+    /* Hide ugly default page heading inside Manage pages */
+    .kp-settings-content > h1:first-child,
+    .kp-settings-content > .partial > h1:first-child {
+        display: none;
+    }
+
+    .kp-settings-content > h3:first-child {
+        margin-top: 0;
+    }
+
+@media (max-width: 991px) {
+    .kp-settings-nav {
+        position: static;
+        margin-bottom: 1rem;
+    }
+}
+
+
+
+
+/* ============================================
+   RECEIPT
+   ============================================ */
+.kp-receipt {
+    background: var(--kp-surface);
+    border-radius: var(--kp-radius-lg);
+    padding: 2.5rem;
+    box-shadow: var(--kp-shadow-lg);
+    border: 1px solid var(--kp-border);
+    position: relative;
+}
+
+    .kp-receipt::before, .kp-receipt::after {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--kp-bg);
+        top: 50%;
+        transform: translateY(-50%);
+        border: 1px solid var(--kp-border);
+    }
+
+    .kp-receipt::before {
+        left: -12px;
+    }
+
+    .kp-receipt::after {
+        right: -12px;
+    }
+
+.kp-receipt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+    .kp-receipt-header img {
+        height: 40px;
+    }
+
+.kp-receipt-amount {
+    text-align: center;
+    padding: 1.5rem 0;
+}
+
+.kp-receipt-label {
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    color: var(--kp-text-muted);
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.kp-receipt-big {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--kp-primary), var(--kp-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.kp-receipt-divider {
+    height: 1px;
+    background: repeating-linear-gradient(90deg, var(--kp-border) 0 6px, transparent 6px 12px);
+    margin: 1.25rem 0;
+}
+
+.kp-receipt-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.93rem;
+}
+
+    .kp-receipt-row span {
+        color: var(--kp-text-muted);
+    }
+
+    .kp-receipt-row strong {
+        color: var(--kp-text);
+    }
+
+.kp-receipt-footer {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--kp-text-muted);
+    margin-top: 0.5rem;
+}
