@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · Kerzel Pay</title>
+    <link rel="icon" type="image/svg+xml" href="~/img/logo-icon.svg">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/kerzelpay-design.css" asp-append-version="true" />
+
+    <script>
+        (function () {
+            const saved = localStorage.getItem('kerzel-theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (systemDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-bs-theme', theme);
+        })();
+    </script>
+</head>
+<body class="kp-auth-body">
+    <div class="kp-auth-shell">
+        <aside class="kp-auth-brand">
+            <a href="/" class="kp-auth-logo">
+                <img src="~/img/logo.svg" alt="Kerzel Pay" />
+                <span>Kerzel Pay</span>
+            </a>
+            <div class="kp-auth-quote">
+                <h2>Send money globally, with zero surprises.</h2>
+                <p>Live ECB exchange rates, flat 1% commission, and instant tracking — built for Lebanon and beyond.</p>
+                <div class="kp-auth-quote-meta">
+                    <div>🛡️ Bank-grade security</div>
+                    <div>⚡ Instant transfers</div>
+                    <div>🌍 4 currencies supported</div>
+                </div>
+            </div>
+        </aside>
+        <main class="kp-auth-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
