@@ -1,0 +1,19 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+    <!-- Gradient background -->
+    <defs>
+        <linearGradient id="kmpGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#0066FF" />
+            <stop offset="100%" stop-color="#00D4AA" />
+        </linearGradient>
+    </defs>
+    <!-- Rounded square -->
+    <rect width="48" height="48" rx="12" fill="url(#kmpGrad)" />
+    <!-- KMP monogram, custom path -->
+    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central"
+          font-family="Inter, -apple-system, sans-serif" font-weight="800"
+          font-size="14" fill="white" letter-spacing="0.5">KMP</text>
+    <!-- Small money icon overlay (subtle arrow indicating flow) -->
+    <path d="M14 32 L24 32 L20 28 M34 32 L24 32 L28 36" 
+          stroke="white" stroke-width="1.5" fill="none" 
+          stroke-linecap="round" stroke-linejoin="round" opacity="0.7" />
+</svg>
