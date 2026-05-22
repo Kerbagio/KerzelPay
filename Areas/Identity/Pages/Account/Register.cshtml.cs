@@ -125,6 +125,36 @@ namespace KerzelPay.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
+                // ===== GUARD 1: Strict format =====
+                if (!new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(Input.Email))
+                {
+                    ModelState.AddModelError(nameof(Input.Email), "Please enter a valid email address.");
+                    return Page();
+                }
+
+                // ===== GUARD 2: Disposable domain blocklist =====
+                var disposableDomains = new[]
+                {
+        "mailinator.com", "10minutemail.com", "tempmail.com", "guerrillamail.com",
+        "throwawaymail.com", "trashmail.com", "yopmail.com", "fakeinbox.com",
+        "sharklasers.com", "getnada.com"
+    };
+                var emailDomain = Input.Email.Split('@').Last().ToLower();
+                if (disposableDomains.Contains(emailDomain))
+                {
+                    ModelState.AddModelError(nameof(Input.Email),
+                        "Disposable email addresses are not allowed. Please use a permanent email.");
+                    return Page();
+                }
+
+                // ===== GUARD 3: Uniqueness =====
+                var existing = await _userManager.FindByEmailAsync(Input.Email);
+                if (existing != null)
+                {
+                    ModelState.AddModelError(nameof(Input.Email),
+                        "An account with this email already exists. Try logging in instead.");
+                    return Page();
+                }
                 var user = CreateUser();
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
